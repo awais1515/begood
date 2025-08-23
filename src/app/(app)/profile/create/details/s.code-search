@@ -1,0 +1,12 @@
+# Query: const mem
+# ContextLines: 1
+
+1 result - 1 file
+src/components/profile/ProfileForm.tsx:
+  243  // Memoize the inputs first
+const stableInitialIntention = useMemo(() => initialIntention, []);
+const stableInitialInterests = useMemo(() => initialInterests, []);
+  244:   const memoizedDefaultValues = useMemo(() => {
+  245      return initialDefaultValues(isEditMode, stableInitialIntention, stableInitialInterests);
+}, [isEditMode]);
+

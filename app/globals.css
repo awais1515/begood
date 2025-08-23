@@ -1,0 +1,70 @@
+
+@tailwind base;
+@tailwind utilities;
+@tailwind components;
+
+@layer base {
+  :root {
+    --background: 60 56% 91%;
+    --foreground: 340 100% 10%;
+    --card: 60 56% 94%;
+    --card-foreground: 340 100% 10%;
+    --popover: 60 56% 91%;
+    --popover-foreground: 340 100% 10%;
+    --primary: 345 100% 25%; /* Burgundy #800020 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 90%; 
+    --secondary-foreground: 0 0% 15%;
+    --muted: 60 33% 85%;
+    --muted-foreground: 0 10% 40%;
+    --accent: 345 80% 20%; 
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 345 40% 50%;
+    --input: 0 100% 25%;
+    --ring: 345 100% 25%;
+    --chart-1: 345 100% 25%;
+    --chart-2: 345 80% 20%;
+    --chart-3: 0 80% 60%;
+    --chart-4: 0 40% 50%;
+    --chart-5: 60 30% 70%;
+  }
+ 
+  .dark {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 90%;
+    --card: 0 0% 8%;
+    --card-foreground: 0 0% 90%;
+    --popover: 0 0% 5%;
+    --popover-foreground: 0 0% 90%;
+    --primary: 345 65% 55%; /* Brighter Burgundy for dark mode */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 345 60% 45%; 
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 16%;
+    --input: 0 0% 16%;
+    --ring: 345 65% 55%;
+
+    --chart-1: 345 65% 55%;
+    --chart-2: 345 60% 45%;
+    --chart-3: 0 80% 65%;
+    --chart-4: 0 40% 60%;
+    --chart-5: 60 30% 80%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
