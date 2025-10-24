@@ -283,28 +283,8 @@ export default function MatchesPage() {
 
       const usersRef = collection(db, "users");
       
-      // Simplified query to reduce complexity
-      const queryConstraints: QueryConstraint[] = [
-        where("isSuspended", "==", false)
-      ];
-
-      // Add search-param based filters if they exist
-      const purposeParam = searchParams?.get('purpose');
-      if (purposeParam && purposeParam !== 'any') {
-          queryConstraints.push(where("purpose", "==", purposeParam));
-      }
-      
-      const countryParam = searchParams?.get('country');
-      if (countryParam && countryParam !== 'any') {
-          queryConstraints.push(where("country", "==", countryParam));
-      }
-      
-      const genderParam = searchParams?.get('gender');
-       if (genderParam && genderParam !== 'any') {
-          queryConstraints.push(where("gender", "==", genderParam));
-      }
-
-      const finalQuery = query(usersRef, ...queryConstraints);
+      // *** SIMPLIFIED QUERY TO FIX PERMISSION ERRORS ***
+      const finalQuery = query(usersRef, where("isSuspended", "==", false));
       const querySnapshot = await getDocs(finalQuery);
 
       const currentYear = new Date().getFullYear();
@@ -340,7 +320,7 @@ export default function MatchesPage() {
     } finally {
       setLoading(false);
     }
-  }, [currentUser, searchParams, toast]);
+  }, [currentUser, toast]);
 
   useEffect(() => {
     fetchData();
