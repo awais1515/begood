@@ -10,7 +10,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth"
-import { useAuth, useFirestore } from "@/firebase"
+import { useAuth, useFirestore } from "@/firebase/provider"
 import { useToast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import {

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Heart, MessageSquare, User, Shield, Loader2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth, useFirestore } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase/provider";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

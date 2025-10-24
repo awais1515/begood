@@ -1,10 +1,7 @@
 
 'use client';
-import {
-  initializeFirebase,
-  FirebaseProvider,
-  type Firebase,
-} from '@/firebase';
+import { initializeFirebase } from '@/firebase';
+import { FirebaseProvider, type Firebase } from '@/firebase/provider';
 import { ReactNode, useEffect, useState } from 'react';
 
 /**

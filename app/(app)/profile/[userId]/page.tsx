@@ -11,7 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MessageSquare, Heart, Loader2, FileQuestion, Users, HelpCircle, UserX, ShieldAlert, BookOpen, Search } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase/provider';
 import { doc, getDoc, setDoc, collection, addDoc, serverTimestamp, arrayUnion, runTransaction, updateDoc } from "firebase/firestore";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useUserLocation } from '@/hooks/use-user-location';

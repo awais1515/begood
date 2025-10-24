@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import BeGoodTitle from '@/components/BeGoodTitle';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/firebase/provider';
 
 export default function SplashPage() {
   const router = useRouter();

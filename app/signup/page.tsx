@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BirthDateSelector } from "@/components/ui/birth-date-selector";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { doc, setDoc } from "firebase/firestore";
-import { useAuth, useFirebaseApp, useFirestore } from '@/firebase';
+import { useAuth, useFirebaseApp, useFirestore } from '@/firebase/provider';
 import { sendEmailVerification, createUserWithEmailAndPassword } from "firebase/auth";
 import Image from 'next/image';
 import Link from "next/link";

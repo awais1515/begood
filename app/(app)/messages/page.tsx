@@ -10,7 +10,7 @@ import { Search, MessageCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { collection, query, where, onSnapshot, orderBy, doc, getDoc, type Timestamp } from 'firebase/firestore';
-import { useAuth, useFirestore } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase/provider';
 
 type MatchProfile = {
   id: string; 

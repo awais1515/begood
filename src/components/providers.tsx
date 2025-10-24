@@ -6,7 +6,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { useState, useEffect } from 'react'
 import { CookieBanner } from '@/components/CookieBanner'
 import { getAnalytics, setAnalyticsCollectionEnabled } from "firebase/analytics";
-import { useFirebaseApp } from '@/firebase';
+import { useFirebaseApp } from '@/firebase/provider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [showBanner, setShowBanner] = useState(false);

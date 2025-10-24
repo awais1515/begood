@@ -15,7 +15,7 @@ import { Loader2, UploadCloud, Trash2, Users, Heart, HelpCircle, BookOpen, KeyRo
 import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage";
 import { updatePassword } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
-import { useAuth, useFirestore, useFirebaseApp } from "@/firebase";
+import { useAuth, useFirestore, useFirebaseApp } from "@/firebase/provider";
 import Image from 'next/image';
 import type { DetailedProfile } from '@/app/(app)/profile/me/page';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

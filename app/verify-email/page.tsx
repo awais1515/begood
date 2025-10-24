@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/firebase';
+import { useAuth } from '@/firebase/provider';
 import { sendEmailVerification, signOut } from 'firebase/auth';
 import { MailCheck, Loader2 } from 'lucide-react';
 import { FirebaseError } from 'firebase/app';

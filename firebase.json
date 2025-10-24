@@ -2,7 +2,9 @@
 {
   "hosting": {
     "source": ".",
-    "appHosting": "begood-u4gke"
+    "appHosting": {
+      "backend": "begood-u4gke"
+    }
   },
   "functions": [
     {

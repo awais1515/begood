@@ -14,7 +14,7 @@ import { useUserLocation } from "@/hooks/use-user-location";
 import { getDistance } from "@/lib/utils";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, type Timestamp, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { Badge } from "@/components/ui/badge";
-import { useAuth, useFirestore } from "@/firebase";
+import { useAuth, useFirestore } from "@/firebase/provider";
 import { useToast } from "@/hooks/use-toast";
 
 type PartnerProfile = {

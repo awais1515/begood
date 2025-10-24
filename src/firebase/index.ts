@@ -5,9 +5,6 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-export * from './provider';
-export * from './client-provider';
-
 /**
  * Initializes Firebase and returns the app, auth, and firestore services.
  * It is idempotent, so it can be called multiple times without creating
