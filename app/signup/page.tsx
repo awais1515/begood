@@ -300,9 +300,9 @@ function SignUpForm() {
                 }
     
                 toast({ title, description, variant: "destructive" });
-                setIsSubmitting(false); // Stop loading on error
+            } finally {
+                setIsSubmitting(false);
             }
-            // No finally block here, as we only want to stop loading on error or completion, which is handled inside try/catch.
         };
     
         // Get location and then process registration
@@ -761,3 +761,5 @@ export default function SignUpPage() {
         </Suspense>
     )
 }
+
+    
