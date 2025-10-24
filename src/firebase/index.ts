@@ -5,7 +5,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-export * from './provider';
+export { useAuth, useFirebase, useFirebaseApp, useFirestore } from './provider';
 
 /**
  * Initializes Firebase and returns the app, auth, and firestore services.
