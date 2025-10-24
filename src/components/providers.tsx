@@ -13,13 +13,17 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const app = useFirebaseApp();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && app) {
         const consent = localStorage.getItem('cookie_consent');
         if (consent === null) {
             setShowBanner(true);
-        } else if (consent === 'true' && app) {
-            const analytics = getAnalytics(app);
-            setAnalyticsCollectionEnabled(analytics, true);
+        } else if (consent === 'true') {
+            try {
+                const analytics = getAnalytics(app);
+                setAnalyticsCollectionEnabled(analytics, true);
+            } catch (error) {
+                console.error("Failed to initialize Analytics", error);
+            }
         }
     }
   }, [app]);
@@ -27,8 +31,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const handleAccept = () => {
     setShowBanner(false);
     if (app) {
-        const analytics = getAnalytics(app);
-        setAnalyticsCollectionEnabled(analytics, true);
+        try {
+            const analytics = getAnalytics(app);
+            setAnalyticsCollectionEnabled(analytics, true);
+        } catch (error) {
+            console.error("Failed to enable Analytics", error);
+        }
     }
   };
 
