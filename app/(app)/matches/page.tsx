@@ -6,7 +6,7 @@ import { collection, doc, getDoc, getDocs, setDoc, arrayUnion, serverTimestamp, 
 import { db, auth } from "@/lib/firebase";
 import { type User, onAuthStateChanged } from "firebase/auth";
 import { Button } from "@/components/ui/button";
-import { Heart, Loader2, X, SlidersHorizontal, Search, BookOpen, RefreshCw, Users, HelpCircle } from "lucide-react";
+import { Heart, Loader2, X, SlidersHorizontal, Search, BookOpen, RefreshCw, Users, HelpCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -227,6 +227,7 @@ export default function MatchesPage() {
   const [isInteracting, setIsInteracting] = useState(false);
   const searchParams = useSearchParams();
   const [showWelcome, setShowWelcome] = useState(false);
+  const [errorState, setErrorState] = useState<{ hasError: boolean, message: string }>({ hasError: false, message: '' });
 
   useEffect(() => {
     // This check now runs only on the client, preventing build errors
@@ -258,6 +259,7 @@ export default function MatchesPage() {
     const currentUserId = currentUser.uid;
 
     setLoading(true);
+    setErrorState({ hasError: false, message: '' });
     try {
       const currentUserDocRef = doc(db, "users", currentUserId);
       const currentUserDocSnap = await getDoc(currentUserDocRef);
@@ -339,7 +341,7 @@ export default function MatchesPage() {
       if (error.code === 'failed-precondition' || (error.message && error.message.includes("indexes"))) {
           description = "The database needs a new index for this query. Please check the browser console for a link to create it, or adjust your filters.";
       }
-
+      setErrorState({ hasError: true, message: description });
       toast({
           title: "Error Fetching Profiles",
           description: description,
@@ -485,7 +487,16 @@ export default function MatchesPage() {
             <p className="font-sans text-primary text-lg italic mt-2">Find your good girl or good boy!</p>
           </div>
           
-          {currentProfile ? (
+          {errorState.hasError ? (
+             <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg">
+                <AlertTriangle className="mx-auto h-12 w-12" />
+                <h2 className="mt-4 text-2xl font-semibold font-serif">Error Fetching Profiles</h2>
+                <p className="mt-2">{errorState.message}</p>
+                <Button variant="outline" onClick={() => fetchData()} className="mt-4 text-destructive border-destructive-foreground/50 hover:bg-destructive-foreground/10 hover:text-destructive-foreground">
+                    <RefreshCw className="mr-2 h-4 w-4" /> Try Again
+                </Button>
+            </div>
+          ) : currentProfile ? (
             <Card key={currentProfile.id} className="overflow-hidden flex flex-col shadow-2xl w-full max-w-sm rounded-2xl transition-all duration-500 ease-in-out transform hover:scale-105">
                 <div className="block relative w-full aspect-[3/4] flex-grow">
                     <Image
@@ -542,3 +553,5 @@ export default function MatchesPage() {
     </>
   );
 }
+
+    
