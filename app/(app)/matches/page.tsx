@@ -272,8 +272,6 @@ export default function MatchesPage() {
         setCurrentUserProfile(profileData);
       }
       
-      const currentUserData = currentUserDocSnap.exists() ? currentUserDocSnap.data() : null;
-      
       const interactionsDocRef = doc(db, "userInteractions", currentUserId);
       const interactionsDocSnap = await getDoc(interactionsDocRef);
 
@@ -285,42 +283,31 @@ export default function MatchesPage() {
 
       const usersRef = collection(db, "users");
       
+      // Simplified query to reduce complexity
       const queryConstraints: QueryConstraint[] = [
         where("isSuspended", "==", false)
       ];
-      
-      const userLookingFor = currentUserData?.lookingFor || [];
-      
-      if (userLookingFor.length > 0) {
-          queryConstraints.push(where("personas", "array-contains-any", userLookingFor));
-      } else {
-          toast({
-            title: "Set Your Preferences",
-            description: "For better matches, specify who you're looking for in your profile.",
-            variant: "default",
-          });
-      }
-      
-      const currentYear = new Date().getFullYear();
-      
+
+      // Add search-param based filters if they exist
       const purposeParam = searchParams?.get('purpose');
-      if (purposeParam) {
+      if (purposeParam && purposeParam !== 'any') {
           queryConstraints.push(where("purpose", "==", purposeParam));
       }
       
       const countryParam = searchParams?.get('country');
-      if (countryParam) {
+      if (countryParam && countryParam !== 'any') {
           queryConstraints.push(where("country", "==", countryParam));
       }
       
       const genderParam = searchParams?.get('gender');
-       if (genderParam) {
+       if (genderParam && genderParam !== 'any') {
           queryConstraints.push(where("gender", "==", genderParam));
       }
 
       const finalQuery = query(usersRef, ...queryConstraints);
       const querySnapshot = await getDocs(finalQuery);
 
+      const currentYear = new Date().getFullYear();
       let fetchedUsers: UserProfile[] = [];
       querySnapshot.forEach(docSnap => {
         const id = docSnap.id;
@@ -340,7 +327,10 @@ export default function MatchesPage() {
       let description = "There was a problem loading profiles. It might be a temporary issue.";
       if (error.code === 'failed-precondition' || (error.message && error.message.includes("indexes"))) {
           description = "The database needs a new index for this query. Please check the browser console for a link to create it, or adjust your filters.";
+      } else if (error.code === 'permission-denied') {
+          description = "You don't have permission to view these profiles. This could be due to a security rule configuration issue.";
       }
+      
       setErrorState({ hasError: true, message: description });
       toast({
           title: "Error Fetching Profiles",
@@ -488,7 +478,7 @@ export default function MatchesPage() {
           </div>
           
           {errorState.hasError ? (
-             <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg">
+             <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg max-w-sm w-full">
                 <AlertTriangle className="mx-auto h-12 w-12" />
                 <h2 className="mt-4 text-2xl font-semibold font-serif">Error Fetching Profiles</h2>
                 <p className="mt-2">{errorState.message}</p>
@@ -553,5 +543,3 @@ export default function MatchesPage() {
     </>
   );
 }
-
-    
