@@ -2,11 +2,11 @@
 "use client"
 
 import { ThemeProvider } from 'next-themes'
-import { Toaster } from "@/src/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster"
 import { useState, useEffect } from 'react'
-import { CookieBanner } from '@/src/components/CookieBanner'
+import { CookieBanner } from '@/components/CookieBanner'
 import { getAnalytics, setAnalyticsCollectionEnabled } from "firebase/analytics";
-import { useFirebaseApp } from '@/src/firebase';
+import { useFirebaseApp } from '@/firebase';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [showBanner, setShowBanner] = useState(false);
@@ -18,8 +18,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
         if (consent === null) {
             setShowBanner(true);
         } else if (consent === 'true' && app) {
-            const analytics = getAnalytics(app);
-            setAnalyticsCollectionEnabled(analytics, true);
+            try {
+              const analytics = getAnalytics(app);
+              setAnalyticsCollectionEnabled(analytics, true);
+            } catch (error) {
+              console.error("Failed to initialize Analytics", error);
+            }
         }
     }
   }, [app]);
@@ -27,8 +31,12 @@ export function Providers({ children }: { children: React.ReactNode }) {
   const handleAccept = () => {
     setShowBanner(false);
     if (app) {
-        const analytics = getAnalytics(app);
-        setAnalyticsCollectionEnabled(analytics, true);
+        try {
+          const analytics = getAnalytics(app);
+          setAnalyticsCollectionEnabled(analytics, true);
+        } catch (error) {
+          console.error("Failed to initialize Analytics on accept", error);
+        }
     }
   };
 
