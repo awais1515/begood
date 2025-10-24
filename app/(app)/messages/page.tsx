@@ -1,4 +1,3 @@
-
 "use client"; 
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -112,7 +111,7 @@ export default function MessagesPage() {
             id: data.partner.id,
             username: data.partner.username,
             avatar: data.partner.avatar,
-            dataAiHint: data.partner.dataAiHint,
+            data.AiHint: data.partner.dataAiHint,
           });
         } else {
           existingChatsResult.push({

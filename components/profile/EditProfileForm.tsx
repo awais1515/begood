@@ -1,4 +1,3 @@
-
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,7 +16,7 @@ import { updatePassword } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
 import { useAuth, useFirestore, useFirebaseApp } from "@/firebase";
 import Image from 'next/image';
-import type { DetailedProfile } from "@/app/(app)/profile/me/page";
+import type { DetailedProfile } from '@/app/(app)/profile/me/page';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";

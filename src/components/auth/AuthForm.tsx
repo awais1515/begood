@@ -10,9 +10,9 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
 } from "firebase/auth"
-import { useAuth, useFirestore } from "@/firebase"
-import { useToast } from "@/hooks/use-toast"
-import { Button } from "@/components/ui/button"
+import { useAuth, useFirestore } from "@/src/firebase"
+import { useToast } from "@/src/hooks/use-toast"
+import { Button } from "@/src/components/ui/button"
 import {
   Form,
   FormControl,
@@ -20,8 +20,8 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "@/src/components/ui/form"
+import { Input } from "@/src/components/ui/input"
 import { Loader2 } from "lucide-react"
 import { FirebaseError } from "firebase/app"
 import { doc, getDoc } from "firebase/firestore"
