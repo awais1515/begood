@@ -2,21 +2,21 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { Button } from '@/src/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Suspense, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { Checkbox } from "@/src/components/ui/checkbox";
-import { useToast } from '@/src/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from '@/hooks/use-toast';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm, FormProvider } from "react-hook-form";
 import * as z from "zod";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/src/components/ui/form";
-import { RadioGroup, RadioGroupItem } from "@/src/components/ui/radio-group";
-import { Label } from "@/src/components/ui/label";
-import { Input } from "@/src/components/ui/input";
-import { Textarea } from "@/src/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
-import { BirthDateSelector } from "@/src/components/ui/birth-date-selector";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { BirthDateSelector } from "@/components/ui/birth-date-selector";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { doc, setDoc } from "firebase/firestore";
 import { useAuth, useFirebaseApp, useFirestore } from '@/firebase';
@@ -24,7 +24,7 @@ import { sendEmailVerification, createUserWithEmailAndPassword } from "firebase/
 import Image from 'next/image';
 import Link from "next/link";
 import { UploadCloud, Trash2, Loader2, Users, Heart, HelpCircle, BookOpen, ArrowLeft } from 'lucide-react';
-import { Progress } from "@/src/components/ui/progress";
+import { Progress } from "@/components/ui/progress";
 import { FirebaseError } from 'firebase/app';
 
 

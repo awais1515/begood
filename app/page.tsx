@@ -3,7 +3,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import BeGoodTitle from '@/src/components/BeGoodTitle';
+import BeGoodTitle from '@/components/BeGoodTitle';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/firebase';
 

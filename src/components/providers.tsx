@@ -2,9 +2,9 @@
 "use client"
 
 import { ThemeProvider } from 'next-themes'
-import { Toaster } from "@/src/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster"
 import { useState, useEffect } from 'react'
-import { CookieBanner } from '@/src/components/CookieBanner'
+import { CookieBanner } from '@/components/CookieBanner'
 import { getAnalytics, setAnalyticsCollectionEnabled } from "firebase/analytics";
 import { useFirebaseApp } from '@/firebase';
 

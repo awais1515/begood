@@ -6,15 +6,15 @@ import { useRouter } from "next/navigation";
 import { deleteUser, signOut } from "firebase/auth";
 import { useAuth, useFirestore } from "@/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
-import { Separator } from "@/src/components/ui/separator";
-import { ThemeSwitcher } from "@/src/components/settings/ThemeSwitcher";
-import { PreferencesSelector } from "@/src/components/settings/PreferencesSelector";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { ThemeSwitcher } from "@/components/settings/ThemeSwitcher";
+import { PreferencesSelector } from "@/components/settings/PreferencesSelector";
 import { Loader2, LogOut } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
+import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useToast } from "@/src/hooks/use-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/src/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { FirebaseError } from "firebase/app";
 
 export default function SettingsPage() {
