@@ -223,12 +223,13 @@ function SignUpForm() {
 
     async function onSubmit(data: FormValues) {
         setIsSubmitting(true);
-        const createProfile = async (location: { latitude: number; longitude: number } | null) => {
+    
+        const processRegistration = async (location: { latitude: number; longitude: number } | null) => {
             try {
                 // 1. Create user in Firebase Auth
                 const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
                 const user = userCredential.user;
-
+    
                 // 2. Upload images to storage
                 const uploadPromises = images.map(async ({ file }) => {
                     const storageRef = ref(storage, `users/${user.uid}/images/${Date.now()}-${file.name}`);
@@ -236,11 +237,11 @@ function SignUpForm() {
                     return getDownloadURL(storageRef);
                 });
                 const uploadedImageUrls = await Promise.all(uploadPromises);
-
+    
                 // 3. Create user document in Firestore
                 const userDocRef = doc(db, "users", user.uid);
                 const birthYear = data.birthDate.getFullYear();
-                
+    
                 const profileData = {
                     username: data.username,
                     fullName: data.fullName,
@@ -261,28 +262,28 @@ function SignUpForm() {
                     longitude: location?.longitude || null,
                     isSuspended: false,
                 };
-                
-                await setDoc(userDocRef, profileData, { merge: true });
-
+    
+                await setDoc(userDocRef, profileData);
+    
                 // 4. Create their interactions doc
                 const interactionsDocRef = doc(db, "userInteractions", user.uid);
                 await setDoc(interactionsDocRef, { liked: [], disliked: [], blocked: [] });
-
+    
                 // 5. Send verification email
                 await sendEmailVerification(user);
-
+    
                 toast({
                     title: "Profile Created!",
                     description: "We've sent a verification link to your email."
                 });
-
+    
                 router.push('/verify-email');
-
+    
             } catch (error: any) {
                 console.error("Profile submission error:", error);
-                 let title = "Submission Error";
-                 let description = error.message || "There was a problem creating your profile.";
-
+                let title = "Submission Error";
+                let description = error.message || "There was a problem creating your profile.";
+    
                 if (error instanceof FirebaseError) {
                     switch (error.code) {
                         case 'auth/email-already-in-use':
@@ -290,37 +291,40 @@ function SignUpForm() {
                             description = "This email is already registered. Please try logging in.";
                             setStep(4); // Go back to the form step with the email field
                             break;
-                         case 'auth/weak-password':
+                        case 'auth/weak-password':
                             title = 'Sign Up Failed';
                             description = 'Your password is too weak. Please use at least 6 characters.';
                             setStep(4);
                             break;
                     }
                 }
-
-                toast({ title, description, variant: "destructive"});
-            } finally {
-                setIsSubmitting(false);
+    
+                toast({ title, description, variant: "destructive" });
+                setIsSubmitting(false); // Stop loading on error
             }
+            // No finally block here, as we only want to stop loading on error or completion, which is handled inside try/catch.
         };
-        
+    
+        // Get location and then process registration
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
-                    createProfile({
+                    processRegistration({
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude,
                     });
                 },
                 () => {
                     // Geolocation failed or was denied
-                    createProfile(null);
+                    console.warn("Geolocation permission denied or failed. Proceeding without location.");
+                    processRegistration(null);
                 },
-                { timeout: 10000 }
+                { timeout: 10000, enableHighAccuracy: false }
             );
         } else {
             // Geolocation is not supported
-            createProfile(null);
+            console.warn("Geolocation is not supported by this browser. Proceeding without location.");
+            processRegistration(null);
         }
     }
 
