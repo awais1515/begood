@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2, FileQuestion } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { EditProfileForm } from '@/components/profile/EditProfileForm';
 import type { DetailedProfile } from '@/app/(app)/profile/me/page';
@@ -17,28 +16,24 @@ type ProfileWithStatus = DetailedProfile & { isSuspended?: boolean };
 export default function EditProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user: currentUser, loading: authLoading } = useAuth();
+  const firestore = useFirestore();
   const [profile, setProfile] = useState<ProfileWithStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-      } else {
-        router.push('/login');
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    if (!authLoading && !currentUser) {
+      router.push('/login');
+    }
+  }, [currentUser, authLoading, router]);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser || !firestore) return;
 
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
@@ -71,9 +66,9 @@ export default function EditProfilePage() {
     };
 
     fetchProfile();
-  }, [currentUser, router, toast]);
+  }, [currentUser, router, toast, firestore]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

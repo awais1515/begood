@@ -10,8 +10,7 @@ import { Search, MessageCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { collection, query, where, onSnapshot, orderBy, doc, getDoc, type Timestamp } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
-import { onAuthStateChanged, type User } from 'firebase/auth';
+import { useAuth, useFirestore } from '@/firebase';
 
 type MatchProfile = {
   id: string; 
@@ -34,7 +33,8 @@ type ChatListItem = {
 export default function MessagesPage() {
   const [newMatches, setNewMatches] = useState<MatchProfile[]>([]);
   const [existingChats, setExistingChats] = useState<ChatListItem[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user: currentUser, loading: authLoading } = useAuth();
+  const firestore = useFirestore();
   const [loading, setLoading] = useState(true);
   const [hydrated, setHydrated] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,29 +44,19 @@ export default function MessagesPage() {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-      } else {
-        setCurrentUser(null);
+    if (!currentUser || !firestore) {
+      if (!authLoading) {
         setLoading(false);
+        setNewMatches([]);
+        setExistingChats([]);
       }
-    });
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    if (!currentUser) {
-      setLoading(false);
-      setNewMatches([]);
-      setExistingChats([]);
       return;
     }
   
     setLoading(true);
   
     const chatsQuery = query(
-      collection(db, 'chats'),
+      collection(firestore, 'chats'),
       where('participants', 'array-contains', currentUser.uid),
       orderBy('lastMessageTimestamp', 'desc')
     );
@@ -74,7 +64,7 @@ export default function MessagesPage() {
     const unsubscribe = onSnapshot(chatsQuery, async (querySnapshot) => {
       const chatDocs = querySnapshot.docs;
 
-      const interactionsDocRef = doc(db, 'userInteractions', currentUser.uid);
+      const interactionsDocRef = doc(firestore, 'userInteractions', currentUser.uid);
       const interactionsDocSnap = await getDoc(interactionsDocRef);
       const blockedIds = interactionsDocSnap.exists() ? (interactionsDocSnap.data().blocked || []) : [];
       
@@ -84,7 +74,7 @@ export default function MessagesPage() {
   
         if (!partnerId || blockedIds.includes(partnerId)) return null;
   
-        const userDocRef = doc(db, 'users', partnerId);
+        const userDocRef = doc(firestore, 'users', partnerId);
         const userDocSnap = await getDoc(userDocRef);
   
         if (userDocSnap.exists()) {
@@ -148,7 +138,7 @@ export default function MessagesPage() {
     });
   
     return () => unsubscribe();
-  }, [currentUser]);
+  }, [currentUser, firestore, authLoading]);
   
   const filteredChats = useMemo(() => {
     if (!searchTerm) {
@@ -160,7 +150,7 @@ export default function MessagesPage() {
     );
   }, [searchTerm, existingChats]);
 
-  if (loading || !hydrated) {
+  if (loading || authLoading || !hydrated) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-144px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

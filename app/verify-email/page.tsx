@@ -7,8 +7,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, sendEmailVerification, signOut } from 'firebase/auth';
+import { useAuth } from '@/firebase';
+import { sendEmailVerification, signOut } from 'firebase/auth';
 import { MailCheck, Loader2 } from 'lucide-react';
 import { FirebaseError } from 'firebase/app';
 
@@ -17,30 +17,26 @@ export default function VerifyEmailPage() {
   const { toast } = useToast();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
-  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const { user, auth, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setIsAuthLoading(true);
+    const checkVerification = async () => {
+      if (authLoading) return;
       if (user) {
         setUserEmail(user.email);
-        // If user is already verified, redirect them to the matches page.
         await user.reload();
         if (user.emailVerified) {
           toast({ title: "Email Verified!", description: "Welcome to the community!" });
           router.push('/matches');
         }
       } else {
-        // If no user is logged in, they shouldn't be here. Redirect to login.
         router.push('/');
       }
-      setIsAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, [router, toast]);
+    };
+    checkVerification();
+  }, [user, authLoading, router, toast]);
   
   const handleResendVerification = async () => {
-    const user = auth.currentUser;
     if (!user) {
       toast({ title: "Error", description: "You are not logged in.", variant: "destructive" });
       return;
@@ -73,6 +69,7 @@ export default function VerifyEmailPage() {
   };
 
   const handleLogoutAndLogin = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       router.push('/');
@@ -82,7 +79,7 @@ export default function VerifyEmailPage() {
     }
   };
 
-  if (isAuthLoading) {
+  if (authLoading) {
       return (
           <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 font-sans">
               <Loader2 className="h-12 w-12 animate-spin text-primary" />

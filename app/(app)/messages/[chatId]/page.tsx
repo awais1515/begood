@@ -14,8 +14,7 @@ import { useUserLocation } from "@/hooks/use-user-location";
 import { getDistance } from "@/lib/utils";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, type Timestamp, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { Badge } from "@/components/ui/badge";
-import { auth, db } from "@/lib/firebase";
-import { type User, onAuthStateChanged } from "firebase/auth";
+import { useAuth, useFirestore } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 type PartnerProfile = {
@@ -46,29 +45,23 @@ export default function ChatPage() {
   const { toast } = useToast();
   const { userLocation } = useUserLocation();
   const [distance, setDistance] = useState<number | null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user: currentUser, loading: authLoading } = useAuth();
+  const firestore = useFirestore();
   const [chatId, setChatId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
-
-
   useEffect(() => {
     setHydrated(true);
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-        setCurrentUser(user);
-        if (!user) {
-            router.push('/login');
-            setLoading(false);
-        }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    if (!authLoading && !currentUser) {
+        router.push('/login');
+    }
+  }, [currentUser, authLoading, router]);
 
   useEffect(() => {
     if (currentUser && partnerId) {
@@ -79,15 +72,17 @@ export default function ChatPage() {
   }, [currentUser, partnerId]);
   
   useEffect(() => {
-    if (!partnerId) {
-      setLoading(false);
-      setChatError("Could not determine the chat partner from the URL.");
+    if (!partnerId || !firestore) {
+      if (firestore) {
+          setLoading(false);
+          setChatError("Could not determine the chat partner from the URL.");
+      }
       return;
     }
 
     const fetchPartnerData = async () => {
       try {
-        const userDocRef = doc(db, 'users', partnerId);
+        const userDocRef = doc(firestore, 'users', partnerId);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
@@ -117,7 +112,7 @@ export default function ChatPage() {
     };
     
     fetchPartnerData();
-  }, [partnerId]);
+  }, [partnerId, firestore]);
 
   useEffect(() => {
     if (userLocation && partner?.latitude && partner?.longitude) {
@@ -132,15 +127,15 @@ export default function ChatPage() {
   }, [userLocation, partner]);
 
   useEffect(() => {
-    if (!chatId || !currentUser || !partnerId) {
-      if(currentUser && partnerId) {
+    if (!chatId || !currentUser || !partnerId || !firestore) {
+      if(currentUser && partnerId && firestore) {
         setLoading(true);
       }
       return;
     };
 
     const markChatAsRead = async () => {
-      const chatDocRef = doc(db, 'chats', chatId);
+      const chatDocRef = doc(firestore, 'chats', chatId);
       const chatDocSnap = await getDoc(chatDocRef);
       if (chatDocSnap.exists()) {
         const chatData = chatDocSnap.data();
@@ -154,8 +149,8 @@ export default function ChatPage() {
 
     const checkBlocksAndFetchMessages = async () => {
         try {
-          const currentUserInteractionsRef = doc(db, 'userInteractions', currentUser.uid);
-          const partnerInteractionsRef = doc(db, 'userInteractions', partnerId);
+          const currentUserInteractionsRef = doc(firestore, 'userInteractions', currentUser.uid);
+          const partnerInteractionsRef = doc(firestore, 'userInteractions', partnerId);
 
           const [currentUserInteractionsSnap, partnerInteractionsSnap] = await Promise.all([
             getDoc(currentUserInteractionsRef),
@@ -176,7 +171,7 @@ export default function ChatPage() {
           
           await markChatAsRead();
 
-          const messagesCollectionRef = collection(db, `chats/${chatId}/messages`);
+          const messagesCollectionRef = collection(firestore, `chats/${chatId}/messages`);
           const messagesQuery = query(messagesCollectionRef, orderBy("timestamp", "asc"));
 
           const unsubscribeFromMessages = onSnapshot(messagesQuery, snapshot => {
@@ -225,7 +220,7 @@ export default function ChatPage() {
         unsubscribe();
       }
     };
-  }, [chatId, currentUser, partnerId, toast, chatError]);
+  }, [chatId, currentUser, partnerId, toast, chatError, firestore]);
 
 
   useEffect(() => {
@@ -239,7 +234,7 @@ export default function ChatPage() {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || !chatId || !currentUser || !partnerId || isSending) return;
+    if (!newMessage.trim() || !chatId || !currentUser || !partnerId || !firestore || isSending) return;
     if (chatError && !chatError.includes('suspended')) {
         toast({ title: "Cannot Send Message", description: chatError, variant: "destructive" });
         return;
@@ -248,8 +243,8 @@ export default function ChatPage() {
     setIsSending(true);
     
     try {
-        const currentUserInteractionsRef = doc(db, 'userInteractions', currentUser.uid);
-        const partnerInteractionsRef = doc(db, 'userInteractions', partnerId);
+        const currentUserInteractionsRef = doc(firestore, 'userInteractions', currentUser.uid);
+        const partnerInteractionsRef = doc(firestore, 'userInteractions', partnerId);
 
         const [currentUserInteractionsSnap, partnerInteractionsSnap] = await Promise.all([
           getDoc(currentUserInteractionsRef),
@@ -280,7 +275,7 @@ export default function ChatPage() {
     const textToSend = newMessage.trim();
     setNewMessage("");
 
-    const chatDocRef = doc(db, 'chats', chatId);
+    const chatDocRef = doc(firestore, 'chats', chatId);
     const messagesCollectionRef = collection(chatDocRef, 'messages');
 
     try {
@@ -310,7 +305,7 @@ export default function ChatPage() {
   };
 
 
-  if (loading || !hydrated) {
+  if (loading || !hydrated || authLoading) {
     return (
       <div className="flex items-center justify-center h-full">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

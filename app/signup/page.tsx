@@ -19,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { BirthDateSelector } from "@/components/ui/birth-date-selector";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { doc, setDoc } from "firebase/firestore";
-import { auth, db, storage } from "@/lib/firebase";
+import { useAuth, useFirebaseApp, useFirestore } from '@/firebase';
 import { sendEmailVerification, createUserWithEmailAndPassword } from "firebase/auth";
 import Image from 'next/image';
 import Link from "next/link";
@@ -156,6 +156,8 @@ function SignUpForm() {
     const [step, setStep] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [images, setImages] = useState<{ file: File; url: string }[]>([]);
+    const { auth, storage } = useAuth();
+    const firestore = useFirestore();
 
     const form = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -222,6 +224,10 @@ function SignUpForm() {
     };
 
     async function onSubmit(data: FormValues) {
+        if (!auth || !firestore || !storage) {
+            toast({ title: "Initialization Error", description: "Firebase services are not ready. Please try again in a moment.", variant: "destructive"});
+            return;
+        }
         setIsSubmitting(true);
     
         const processRegistration = async (location: { latitude: number; longitude: number } | null) => {
@@ -239,7 +245,7 @@ function SignUpForm() {
                 const uploadedImageUrls = await Promise.all(uploadPromises);
     
                 // 3. Create user document in Firestore
-                const userDocRef = doc(db, "users", user.uid);
+                const userDocRef = doc(firestore, "users", user.uid);
                 const birthYear = data.birthDate.getFullYear();
     
                 const profileData = {
@@ -266,7 +272,7 @@ function SignUpForm() {
                 await setDoc(userDocRef, profileData);
     
                 // 4. Create their interactions doc
-                const interactionsDocRef = doc(db, "userInteractions", user.uid);
+                const interactionsDocRef = doc(firestore, "userInteractions", user.uid);
                 await setDoc(interactionsDocRef, { liked: [], disliked: [], blocked: [] });
     
                 // 5. Send verification email
@@ -761,5 +767,3 @@ export default function SignUpPage() {
         </Suspense>
     )
 }
-
-    

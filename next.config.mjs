@@ -1,9 +1,16 @@
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  assetPrefix: process.env.NODE_ENV === 'development' ? '' : undefined,
-  experimental: {
-    allowedDevOrigins: [
-      "https://9000-firebase-studio-1748527364540.cluster-oayqgyglpfgseqclbygurw4xd4.cloudworkstations.dev",
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
     ],
   },
 };

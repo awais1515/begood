@@ -6,37 +6,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { useEffect, useState } from "react";
+import { useAuth, useFirestore } from "@/firebase";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
-
 
 export default function WelcomePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
+  const firestore = useFirestore();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        // If user is logged in, check for profile and redirect
-        const userDocRef = doc(db, 'users', user.uid);
+    const checkUser = async () => {
+      if (!loading && user && firestore) {
+        const userDocRef = doc(firestore, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
           router.push('/matches');
         } else {
           router.push('/signup');
         }
-      } else {
-        // If no user is logged in, stop loading and show the page
-        setLoading(false);
       }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
+    };
+    checkUser();
+  }, [user, loading, firestore, router]);
 
   if (loading) {
     return (

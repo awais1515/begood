@@ -11,9 +11,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Loader2, FileQuestion, Edit, UserCircle, Users, Heart, HelpCircle, BookOpen, Search, LogOut, Settings } from "lucide-react"; 
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { onAuthStateChanged, type User, signOut } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from '@/lib/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { formatDisplayValue } from '@/lib/utils';
 
@@ -59,7 +59,8 @@ export default function MyProfilePage() {
   const { toast } = useToast();
   const [profile, setProfile] = useState<DetailedProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user: currentUser, auth, loading: authLoading } = useAuth();
+  const firestore = useFirestore();
   const [hydrated, setHydrated] = useState(false);
 
   const [isImageDialogOpen, setIsImageDialogOpen] = useState(false);
@@ -69,24 +70,22 @@ export default function MyProfilePage() {
 
   useEffect(() => {
     setHydrated(true);
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-      } else {
-        setLoading(false);
-        router.push('/');
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+  }, []);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!authLoading && !currentUser) {
+      setLoading(false);
+      router.push('/');
+    }
+  }, [currentUser, authLoading, router]);
+
+  useEffect(() => {
+    if (!currentUser || !firestore) return;
 
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (userDocSnap.exists()) {
@@ -115,7 +114,7 @@ export default function MyProfilePage() {
     };
     
     fetchProfile();
-  }, [currentUser, toast]);
+  }, [currentUser, toast, firestore]);
 
 
   const handleImageClick = (imageUrl: string, altText: string, dataAiHint: string) => {
@@ -126,6 +125,7 @@ export default function MyProfilePage() {
   };
 
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       toast({
@@ -143,7 +143,7 @@ export default function MyProfilePage() {
     }
   };
 
-  if (loading || !hydrated) {
+  if (loading || authLoading || !hydrated) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-4">
         <Loader2 className="mx-auto h-16 w-16 animate-spin text-primary" />

@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -12,9 +11,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, MessageSquare, Heart, Loader2, FileQuestion, Users, HelpCircle, UserX, ShieldAlert, BookOpen, Search } from "lucide-react";
 import { useToast } from '@/hooks/use-toast';
-import { db, auth } from '@/lib/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { doc, getDoc, setDoc, collection, addDoc, serverTimestamp, arrayUnion, runTransaction, updateDoc } from "firebase/firestore";
-import { onAuthStateChanged, type User } from 'firebase/auth';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { useUserLocation } from '@/hooks/use-user-location';
 import { getDistance, formatDisplayValue } from '@/lib/utils';
@@ -80,12 +78,21 @@ export default function UserProfilePage() {
   const router = useRouter();
   const { toast } = useToast();
 
-if (!params || !params.userId || typeof params.userId !== "string") {
-  throw new Error("Invalid or missing user ID in the URL.");
-}
+  if (!params || !params.userId || typeof params.userId !== "string") {
+    // This case should ideally be handled by Next.js routing, but as a fallback:
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-4">
+        <FileQuestion className="mx-auto h-24 w-24 text-destructive opacity-70" />
+        <h2 className="mt-8 text-3xl font-semibold font-serif">Invalid URL</h2>
+        <p className="mt-2 text-muted-foreground font-sans">The user ID is missing from the URL.</p>
+        <Button onClick={() => router.back()} className="mt-6">
+          <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+        </Button>
+      </div>
+    );
+  }
 
-const userId = params.userId;
-
+  const userId = params.userId;
   
   const [profile, setProfile] = useState<DetailedProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -101,14 +108,8 @@ const userId = params.userId;
 
   const { userLocation } = useUserLocation();
   const [distance, setDistance] = useState<number|null>(null);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
+  const { user: currentUser } = useAuth();
+  const firestore = useFirestore();
 
   useEffect(() => {
     if (userLocation && profile?.latitude && profile?.longitude) {
@@ -127,11 +128,11 @@ const userId = params.userId;
   }, []);
 
   useEffect(() => {
-    if (hydrated && userId) {
+    if (hydrated && userId && firestore) {
       const fetchProfile = async () => {
         setLoading(true);
         try {
-          const userDocRef = doc(db, 'users', userId);
+          const userDocRef = doc(firestore, 'users', userId);
           const userDocSnap = await getDoc(userDocRef);
 
           if (userDocSnap.exists()) {
@@ -162,13 +163,13 @@ const userId = params.userId;
 
       fetchProfile();
     }
-  }, [userId, hydrated, toast]);
+  }, [userId, hydrated, toast, firestore]);
   
   useEffect(() => {
-    if (!currentUser || !userId) return;
+    if (!currentUser || !userId || !firestore) return;
 
     const checkLikeStatus = async () => {
-        const interactionsDocRef = doc(db, "userInteractions", currentUser.uid);
+        const interactionsDocRef = doc(firestore, "userInteractions", currentUser.uid);
         const interactionsDocSnap = await getDoc(interactionsDocRef);
 
         if (interactionsDocSnap.exists()) {
@@ -180,11 +181,11 @@ const userId = params.userId;
     };
 
     checkLikeStatus();
-}, [currentUser, userId]);
+}, [currentUser, userId, firestore]);
 
 
   const handleLike = async () => {
-    if (!profile || !currentUser || isProcessing) {
+    if (!profile || !currentUser || !firestore || isProcessing) {
         if(!isProcessing) toast({
             title: "Action failed",
             description: "You must be logged in to like a user.",
@@ -197,11 +198,11 @@ const userId = params.userId;
     const currentUserId = currentUser.uid;
     const targetUserId = profile.id;
 
-    const interactionsDocRef = doc(db, "userInteractions", currentUserId);
-    const targetInteractionsDocRef = doc(db, "userInteractions", targetUserId);
+    const interactionsDocRef = doc(firestore, "userInteractions", currentUserId);
+    const targetInteractionsDocRef = doc(firestore, "userInteractions", targetUserId);
 
     try {
-        await runTransaction(db, async (transaction) => {
+        await runTransaction(firestore, async (transaction) => {
             const targetInteractionsSnap = await transaction.get(targetInteractionsDocRef);
             const targetInteractionsData = targetInteractionsSnap.exists() ? targetInteractionsSnap.data() : {};
             const targetLiked = targetInteractionsData.liked || [];
@@ -226,7 +227,7 @@ const userId = params.userId;
                 
                 const ids = [currentUserId, targetUserId].sort();
                 const chatId = ids.join('_');
-                const chatDocRef = doc(db, 'chats', chatId);
+                const chatDocRef = doc(firestore, 'chats', chatId);
 
                 transaction.set(chatDocRef, {
                     participants: ids,
@@ -249,7 +250,7 @@ const userId = params.userId;
   };
 
   const handleBlockUser = async () => {
-    if (!profile || !currentUser || isProcessing) {
+    if (!profile || !currentUser || !firestore || isProcessing) {
        if(!isProcessing) toast({
         title: "Action failed",
         description: "You must be logged in to block a user.",
@@ -259,7 +260,7 @@ const userId = params.userId;
     }
     setIsProcessing(true);
     
-    const interactionsDocRef = doc(db, "userInteractions", currentUser.uid);
+    const interactionsDocRef = doc(firestore, "userInteractions", currentUser.uid);
     try {
       await updateDoc(interactionsDocRef, {
         blocked: arrayUnion(profile.id)
@@ -284,7 +285,7 @@ const userId = params.userId;
   };
 
   const handleReportUser = async () => {
-    if (!profile || !currentUser || isProcessing) {
+    if (!profile || !currentUser || !firestore || isProcessing) {
        if(!isProcessing) toast({
         title: "Action failed",
         description: "You must be logged in to report a user.",
@@ -303,7 +304,7 @@ const userId = params.userId;
 
     setIsProcessing(true);
     try {
-      await addDoc(collection(db, "reports"), {
+      await addDoc(collection(firestore, "reports"), {
         reporterId: currentUser.uid,
         reportedUserId: profile.id,
         reportedUserName: profile.username,

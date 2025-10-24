@@ -5,34 +5,26 @@ import Link from "next/link";
 import { Heart, MessageSquare, User, Shield, Loader2 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { useAuth, useFirestore } from "@/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [user, setUser] = useState<FirebaseUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading } = useAuth();
+  const firestore = useFirestore();
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUser(user);
-        setLoading(false);
-      } else {
-        router.push('/login');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [router]);
+    if (!loading && !user) {
+      router.push('/login');
+    }
+  }, [user, loading, router]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !firestore) return;
 
     const chatsQuery = query(
-      collection(db, 'chats'),
+      collection(firestore, 'chats'),
       where('participants', 'array-contains', user.uid)
     );
 
@@ -49,7 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, firestore]);
 
 
   const navItems = [

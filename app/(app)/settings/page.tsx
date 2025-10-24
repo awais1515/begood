@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { onAuthStateChanged, deleteUser, signOut } from "firebase/auth";
-import { auth, db } from "@/lib/firebase";
+import { deleteUser, signOut } from "firebase/auth";
+import { useAuth, useFirestore } from "@/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -20,39 +20,42 @@ import { FirebaseError } from "firebase/app";
 export default function SettingsPage() {
   const router = useRouter();
   const { toast } = useToast();
+  const { user: currentUser, auth, loading: authLoading } = useAuth();
+  const firestore = useFirestore();
   const [loading, setLoading] = useState(true);
   const [isSuspended, setIsSuspended] = useState(false);
   const [isTogglingSuspend, setIsTogglingSuspend] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
+    if (authLoading) return;
+    if (!currentUser) {
         router.push('/');
         return;
-      }
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists()) {
-          setIsSuspended(userDocSnap.data().isSuspended || false);
+    }
+    const fetchStatus = async () => {
+        if (!firestore) return;
+        try {
+            const userDocRef = doc(firestore, 'users', currentUser.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            if (userDocSnap.exists()) {
+                setIsSuspended(userDocSnap.data().isSuspended || false);
+            }
+        } catch (error) {
+            console.error("Error fetching user status:", error);
+        } finally {
+            setLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching user status:", error);
-      } finally {
-        setLoading(false);
-      }
-    });
-    return () => unsubscribe();
-  }, [router]);
+    }
+    fetchStatus();
+  }, [router, currentUser, authLoading, firestore]);
   
   const handleToggleSuspend = async () => {
-    const currentUser = auth.currentUser;
-    if (!currentUser) return;
+    if (!currentUser || !firestore) return;
 
     setIsTogglingSuspend(true);
     try {
-        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
         await updateDoc(userDocRef, { isSuspended: !isSuspended });
         setIsSuspended(!isSuspended);
         toast({
@@ -67,6 +70,7 @@ export default function SettingsPage() {
   };
 
   const handleLogout = async () => {
+    if (!auth) return;
     try {
       await signOut(auth);
       toast({
@@ -85,15 +89,12 @@ export default function SettingsPage() {
   };
 
   const handleDeleteProfile = async () => {
-    const currentUser = auth.currentUser;
     if (!currentUser) {
         toast({ title: "Not Authenticated", description: "You must be logged in.", variant: "destructive" });
         return;
     }
     setIsDeleting(true);
     try {
-        // The most important step is deleting the auth user.
-        // A Cloud Function will trigger on this deletion to clean up all associated data.
         await deleteUser(currentUser);
         
         toast({ title: "Profile Deleted", description: "Your account and all data have been permanently deleted." });
@@ -118,7 +119,7 @@ export default function SettingsPage() {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

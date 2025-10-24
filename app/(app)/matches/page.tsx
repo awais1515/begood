@@ -3,8 +3,7 @@
 
 import { useEffect, useState, useRef, useCallback } from "react";
 import { collection, doc, getDoc, getDocs, setDoc, arrayUnion, serverTimestamp, query, where, runTransaction, type QueryConstraint } from "firebase/firestore";
-import { db, auth } from "@/lib/firebase";
-import { type User, onAuthStateChanged } from "firebase/auth";
+import { useAuth, useFirestore } from "@/firebase";
 import { Button } from "@/components/ui/button";
 import { Heart, Loader2, X, SlidersHorizontal, Search, BookOpen, RefreshCw, Users, HelpCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -217,8 +216,9 @@ function SearchFilters({ closeDialog }: { closeDialog: () => void }) {
 
 export default function MatchesPage() {
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { user: currentUser, loading: authLoading } = useAuth();
+  const firestore = useFirestore();
+  const [loadingProfiles, setLoadingProfiles] = useState(true);
   const profilesRef = useRef<UserProfile[]>([]);
   const { toast } = useToast();
   const [matchData, setMatchData] = useState<UserProfile | null>(null);
@@ -242,26 +242,19 @@ export default function MatchesPage() {
     setShowWelcome(false);
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, user => {
-      setCurrentUser(user);
-    });
-    return () => unsubscribe();
-  }, []);
-
   const fetchData = useCallback(async () => {
-    if (!currentUser) {
-      setLoading(false);
+    if (!currentUser || !firestore) {
+      setLoadingProfiles(false);
       setProfiles([]);
       return;
     }
 
     const currentUserId = currentUser.uid;
 
-    setLoading(true);
+    setLoadingProfiles(true);
     setErrorState({ hasError: false, message: '' });
     try {
-      const currentUserDocRef = doc(db, "users", currentUserId);
+      const currentUserDocRef = doc(firestore, "users", currentUserId);
       const currentUserDocSnap = await getDoc(currentUserDocRef);
       
       if (currentUserDocSnap.exists()) {
@@ -272,7 +265,7 @@ export default function MatchesPage() {
         setCurrentUserProfile(profileData);
       }
       
-      const interactionsDocRef = doc(db, "userInteractions", currentUserId);
+      const interactionsDocRef = doc(firestore, "userInteractions", currentUserId);
       const interactionsDocSnap = await getDoc(interactionsDocRef);
 
       let seenIds: string[] = [currentUserId];
@@ -281,9 +274,8 @@ export default function MatchesPage() {
         seenIds.push(...(data.liked || []), ...(data.disliked || []), ...(data.blocked || []));
       }
 
-      const usersRef = collection(db, "users");
+      const usersRef = collection(firestore, "users");
       
-      // *** SIMPLIFIED QUERY TO FIX PERMISSION ERRORS ***
       const finalQuery = query(usersRef, where("isSuspended", "==", false));
       const querySnapshot = await getDocs(finalQuery);
 
@@ -318,16 +310,16 @@ export default function MatchesPage() {
           variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      setLoadingProfiles(false);
     }
-  }, [currentUser, toast]);
+  }, [currentUser, firestore, toast]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   async function handleInteraction(targetProfile: UserProfile, type: "liked" | "disliked") {
-    if (!currentUser || isInteracting) return;
+    if (!currentUser || !firestore || isInteracting) return;
     setIsInteracting(true);
 
     const currentUserId = currentUser.uid;
@@ -339,11 +331,11 @@ export default function MatchesPage() {
     profilesRef.current = newProfiles;
     setProfiles(newProfiles);
 
-    const interactionsDocRef = doc(db, "userInteractions", currentUserId);
-    const targetInteractionsDocRef = doc(db, "userInteractions", targetUserId);
+    const interactionsDocRef = doc(firestore, "userInteractions", currentUserId);
+    const targetInteractionsDocRef = doc(firestore, "userInteractions", targetUserId);
 
     try {
-      await runTransaction(db, async (transaction) => {
+      await runTransaction(firestore, async (transaction) => {
         const targetInteractionsSnap = await transaction.get(targetInteractionsDocRef);
         const targetInteractionsData = targetInteractionsSnap.exists() ? targetInteractionsSnap.data() : {};
         const targetLiked = targetInteractionsData.liked || [];
@@ -355,7 +347,7 @@ export default function MatchesPage() {
 
           const ids = [currentUserId, targetUserId].sort();
           const chatId = ids.join('_');
-          const chatDocRef = doc(db, 'chats', chatId);
+          const chatDocRef = doc(firestore, 'chats', chatId);
 
           transaction.set(chatDocRef, {
               participants: ids,
@@ -379,7 +371,7 @@ export default function MatchesPage() {
     }
   }
 
-  if (loading) {
+  if (authLoading || loadingProfiles) {
     return (
       <div className="flex items-center justify-center h-[calc(100vh-144px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
