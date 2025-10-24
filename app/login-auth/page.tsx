@@ -1,9 +1,9 @@
 
 "use client";
 
-import { AppLogo } from "@/components/AppLogo";
-import { AuthForm } from "@/components/auth/AuthForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppLogo } from "@/src/components/AppLogo";
+import { AuthForm } from "@/src/components/auth/AuthForm";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Loader2 } from "lucide-react";

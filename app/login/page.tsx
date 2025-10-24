@@ -1,9 +1,9 @@
 
 "use client";
 
-import { AppLogo } from "@/components/AppLogo";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppLogo } from "@/src/components/AppLogo";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

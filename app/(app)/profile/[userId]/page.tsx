@@ -4,18 +4,18 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent } from "@/src/components/ui/card";
+import { Badge } from "@/src/components/ui/badge";
+import { Dialog, DialogContent } from "@/src/components/ui/dialog";
+import { Separator } from "@/src/components/ui/separator";
 import { ArrowLeft, MessageSquare, Heart, Loader2, FileQuestion, Users, HelpCircle, UserX, ShieldAlert, BookOpen, Search } from "lucide-react";
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/src/hooks/use-toast';
 import { useAuth, useFirestore } from '@/firebase';
 import { doc, getDoc, setDoc, collection, addDoc, serverTimestamp, arrayUnion, runTransaction, updateDoc } from "firebase/firestore";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { useUserLocation } from '@/hooks/use-user-location';
-import { getDistance, formatDisplayValue } from '@/lib/utils';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/src/components/ui/carousel";
+import { useUserLocation } from '@/src/hooks/use-user-location';
+import { getDistance, formatDisplayValue } from '@/src/lib/utils';
 import Link from 'next/link';
 import {
   AlertDialog,
@@ -27,9 +27,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+} from "@/src/components/ui/alert-dialog";
+import { Textarea } from '@/src/components/ui/textarea';
+import { Label } from '@/src/components/ui/label';
 
 
 export type DetailedProfile = {

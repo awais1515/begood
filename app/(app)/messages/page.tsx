@@ -2,13 +2,13 @@
 "use client"; 
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/src/components/ui/card";
+import { Input } from "@/src/components/ui/input";
+import { ScrollArea, ScrollBar } from "@/src/components/ui/scroll-area";
 import { Search, MessageCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/src/components/ui/badge";
 import { collection, query, where, onSnapshot, orderBy, doc, getDoc, type Timestamp } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase';
 

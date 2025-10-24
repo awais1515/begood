@@ -1,21 +1,21 @@
 
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
+import { Button } from "@/src/components/ui/button";
+import { Input } from "@/src/components/ui/input";
+import { ScrollArea } from "@/src/components/ui/scroll-area";
+import { Alert, AlertDescription, AlertTitle } from "@/src/components/ui/alert";
 import { ArrowLeft, Send, Loader2, AlertTriangle, UserX } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import React, { useState, useEffect, useRef } from "react";
-import { useUserLocation } from "@/hooks/use-user-location";
-import { getDistance } from "@/lib/utils";
+import { useUserLocation } from "@/src/hooks/use-user-location";
+import { getDistance } from "@/src/lib/utils";
 import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, type Timestamp, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/src/components/ui/badge";
 import { useAuth, useFirestore } from "@/firebase";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/src/hooks/use-toast";
 
 type PartnerProfile = {
   id: string;

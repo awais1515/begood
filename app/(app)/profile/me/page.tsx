@@ -4,18 +4,18 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/src/components/ui/button";
+import { Card, CardContent } from "@/src/components/ui/card";
+import { Badge } from "@/src/components/ui/badge";
+import { Dialog, DialogContent } from "@/src/components/ui/dialog";
 import { Loader2, FileQuestion, Edit, UserCircle, Users, Heart, HelpCircle, BookOpen, Search, LogOut, Settings } from "lucide-react"; 
 import Link from 'next/link';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/src/components/ui/carousel";
 import { signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase';
-import { useToast } from '@/hooks/use-toast';
-import { formatDisplayValue } from '@/lib/utils';
+import { useToast } from '@/src/hooks/use-toast';
+import { formatDisplayValue } from '@/src/lib/utils';
 
 export type DetailedProfile = {
   id: string;

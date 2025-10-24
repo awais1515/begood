@@ -4,7 +4,7 @@ import {
   initializeFirebase,
   FirebaseProvider,
   type Firebase,
-} from '@/src/firebase';
+} from '@/firebase';
 import { ReactNode, useEffect, useState } from 'react';
 
 /**

@@ -4,20 +4,20 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { collection, doc, getDoc, getDocs, setDoc, arrayUnion, serverTimestamp, query, where, runTransaction, type QueryConstraint } from "firebase/firestore";
 import { useAuth, useFirestore } from "@/firebase";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/src/components/ui/button";
 import { Heart, Loader2, X, SlidersHorizontal, Search, BookOpen, RefreshCw, Users, HelpCircle, AlertTriangle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/src/hooks/use-toast";
 import Link from "next/link";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/src/components/ui/card";
 import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AppLogo } from "@/components/AppLogo";
+import { Avatar, AvatarFallback, AvatarImage } from "@/src/components/ui/avatar";
+import { AppLogo } from "@/src/components/AppLogo";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { WelcomeNotification } from "@/components/WelcomeNotification";
-import { formatDisplayValue } from "@/lib/utils";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/src/components/ui/dialog";
+import { Label } from "@/src/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
+import { WelcomeNotification } from "@/src/components/WelcomeNotification";
+import { formatDisplayValue } from "@/src/lib/utils";
 
 interface UserProfile {
   id: string;
