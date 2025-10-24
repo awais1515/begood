@@ -3,68 +3,37 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // HELPER FUNCTIONS
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    function isParticipant(chatId) {
-      return request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
-    }
-
-    // USER PROFILES
     match /users/{userId} {
-      // Any authenticated user can read any profile
-      allow get: if isSignedIn();
+      // Any authenticated user can get a single user profile or list all users.
+      allow get, list: if request.auth != null;
       
-      // Users can only create and update their own profile
-      allow create, update: if isOwner(userId);
-      
-      // A user can delete their own profile
-      allow delete: if isOwner(userId);
+      // A user can only create, update, or delete their own profile.
+      allow create, update, delete: if request.auth.uid == userId;
     }
-    
-    // USER INTERACTIONS (likes, dislikes, blocks)
+
     match /userInteractions/{userId} {
-      // A user can only read and write their own interactions document
-      allow read, write: if isOwner(userId);
+        // A user can only read or write to their own interactions document.
+        allow read, write: if request.auth.uid == userId;
     }
 
-    // CHATS & MESSAGES
-    match /chats/{chatId} {
-      // A user can get a specific chat document or list all chats they are a part of
-      allow get, list: if isSignedIn() && request.auth.uid in resource.data.participants;
-      
-      // A user can create a chat if they are one of the participants in the new document
-      allow create: if isSignedIn() && request.auth.uid in request.resource.data.participants;
-      
-      // A user can update a chat (e.g., lastMessage) if they are a participant
-      allow update: if isParticipant(chatId);
-      
-      // No user can delete a chat room
-      allow delete: if false;
+    match /reports/{reportId} {
+      // Any authenticated user can create a report.
+      allow create: if request.auth != null;
+      // Reports are not readable by clients.
+      allow read, write: if false;
+    }
 
-      // MESSAGES (sub-collection of a chat)
-      match /messages/{messageId} {
-        // A user can read messages in a chat they are a participant in
-        allow get, list: if isParticipant(chatId);
-        
-        // A user can create a message if they are a participant and the sender
-        allow create: if isParticipant(chatId) && request.resource.data.senderId == request.auth.uid;
-        
-        // Messages cannot be updated or deleted by clients
-        allow update, delete: if false;
-      }
+    match /chats/{chatId} {
+      // A user can only access a chat if they are one of the participants.
+      allow read, write: if request.auth.uid in resource.data.participants;
+      
+      // Allow a user to list chats they are a part of.
+      allow list: if request.auth != null && request.auth.uid in query.get('participants');
     }
     
-    // REPORTS
-    match /reports/{reportId} {
-      // Any authenticated user can create a report
-      allow create: if isSignedIn();
+    match /chats/{chatId}/messages/{messageId} {
+        // A user can read/write messages in a chat they are a participant in.
+        allow read, write: if request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
     }
   }
 }
