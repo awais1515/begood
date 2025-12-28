@@ -1,3 +1,4 @@
+
 {
   "name": "nextn",
   "version": "0.1.0",
@@ -41,12 +42,12 @@
     "embla-carousel-react": "8.1.5",
     "firebase": "11.8.1",
     "lucide-react": "0.480.0",
-    "next": "^14.2.30",
+    "next": "14.2.5",
     "next-themes": "0.3.0",
     "nodemailer": "^6.9.13",
-    "react": "^18.2.0",
+    "react": "^18.3.1",
     "react-day-picker": "8.10.1",
-    "react-dom": "^18.2.0",
+    "react-dom": "^18.3.1",
     "react-firebase-hooks": "5.1.1",
     "react-hook-form": "7.54.2",
     "recharts": "2.15.1",
