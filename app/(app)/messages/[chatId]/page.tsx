@@ -209,9 +209,8 @@ export default function ChatPage() {
           }).reverse(); // Reverse for chronological order
 
           setMessages(prevMessages => {
-            // Merge with existing older messages, avoiding duplicates
-            const existingIds = new Set(prevMessages.map(m => m.id));
-            const newMsgs = fetchedMessages.filter(m => !existingIds.has(m.id));
+            // Get IDs of messages in the latest snapshot
+            const snapshotIds = new Set(fetchedMessages.map(m => m.id));
 
             if (prevMessages.length === 0) {
               // Initial load
@@ -223,15 +222,14 @@ export default function ChatPage() {
               return fetchedMessages;
             }
 
-            // Append new messages (real-time updates)
-            const allMessages = [...prevMessages];
-            newMsgs.forEach(msg => {
-              if (!allMessages.find(m => m.id === msg.id)) {
-                allMessages.push(msg);
-              }
-            });
+            // Keep older messages that are NOT in the latest snapshot (pagination data)
+            // These are messages loaded via "Load More"
+            const olderMessages = prevMessages.filter(m => !snapshotIds.has(m.id));
 
-            // Sort by timestamp
+            // Combine older messages with the latest snapshot messages
+            const allMessages = [...olderMessages, ...fetchedMessages];
+
+            // Sort by timestamp to ensure correct order
             allMessages.sort((a, b) => {
               if (!a.timestamp && !b.timestamp) return 0;
               if (!a.timestamp) return 1;
@@ -557,7 +555,7 @@ export default function ChatPage() {
         {messages.map((msg, index) => (
           <div
             key={`${msg.id}-${index}`}
-            className={`flex gap-2 items-start ${msg.senderId === currentUser?.uid ? "justify-end" : "justify-start"
+            className={`flex gap-2 items-start mb-3 ${msg.senderId === currentUser?.uid ? "justify-end" : "justify-start"
               }`}
           >
             {msg.senderId !== currentUser?.uid && partner && (
