@@ -2,17 +2,18 @@
 "use client";
 
 import Link from "next/link";
-import { Heart, MessageSquare, User, Shield, Loader2 } from "lucide-react";
+import { Heart, MessageSquare, User, Shield, Loader2, UserPlus } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user, loading } = useAuth();
   const firestore = useFirestore();
   const [unreadCount, setUnreadCount] = useState(0);
+  const [requestsCount, setRequestsCount] = useState(0);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -43,10 +44,40 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [user, firestore]);
 
+  // Track requests count
+  useEffect(() => {
+    if (!user || !firestore) return;
+
+    const fetchRequestsCount = async () => {
+      try {
+        const interactionsDocRef = doc(firestore, 'userInteractions', user.uid);
+        const interactionsSnap = await getDoc(interactionsDocRef);
+
+        if (interactionsSnap.exists()) {
+          const data = interactionsSnap.data();
+          const requests = data.requests || [];
+          setRequestsCount(requests.length);
+        } else {
+          setRequestsCount(0);
+        }
+      } catch (error) {
+        console.error('Error fetching requests count:', error);
+        setRequestsCount(0);
+      }
+    };
+
+    fetchRequestsCount();
+    // Refresh count every 30 seconds
+    const interval = setInterval(fetchRequestsCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [user, firestore]);
+
 
   const navItems = [
     { title: "Discover", href: "/matches", icon: Heart },
     { title: "Messages", href: "/messages", icon: MessageSquare },
+    { title: "Requests", href: "/requests", icon: UserPlus },
     { title: "Profile", href: "/profile/me", icon: User },
     { title: "Policies", href: "/policies", icon: Shield },
   ];
@@ -58,9 +89,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  
+
   if (!user) {
-    return null; 
+    return null;
   }
 
   return (
@@ -79,10 +110,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <item.icon className="h-6 w-6" />
               <span className="text-xs font-medium">{item.title}</span>
               {item.href === '/messages' && unreadCount > 0 && (
-                 <div className="absolute top-0 right-0 -mr-2 mt-0.5">
-                    <div className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
-                        {unreadCount}
-                    </div>
+                <div className="absolute top-0 right-0 -mr-2 mt-0.5">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-xs font-bold text-destructive-foreground">
+                    {unreadCount}
+                  </div>
+                </div>
+              )}
+              {item.href === '/requests' && requestsCount > 0 && (
+                <div className="absolute top-0 right-0 -mr-2 mt-0.5">
+                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+                    {requestsCount}
+                  </div>
                 </div>
               )}
             </Link>

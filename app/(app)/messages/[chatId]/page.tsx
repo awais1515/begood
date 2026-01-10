@@ -6,16 +6,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Send, Loader2, AlertTriangle, UserX } from "lucide-react";
+import { ArrowLeft, Send, Loader2, AlertTriangle, UserX, ChevronUp } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useUserLocation } from "@/hooks/use-user-location";
 import { getDistance } from "@/lib/utils";
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, type Timestamp, doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, query, orderBy, limit, startAfter, endBefore, limitToLast, getDocs, onSnapshot, serverTimestamp, type Timestamp, type QueryDocumentSnapshot, doc, getDoc, updateDoc } from "firebase/firestore";
 import { Badge } from "@/components/ui/badge";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { useToast } from "@/hooks/use-toast";
+
+const MESSAGES_PER_PAGE = 15;
 
 type PartnerProfile = {
   id: string;
@@ -53,29 +55,35 @@ export default function ChatPage() {
   const [chatError, setChatError] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
+  // Pagination state
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [oldestDoc, setOldestDoc] = useState<QueryDocumentSnapshot | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+
   useEffect(() => {
     setHydrated(true);
   }, []);
 
   useEffect(() => {
     if (!authLoading && !currentUser) {
-        router.push('/login');
+      router.push('/login');
     }
   }, [currentUser, authLoading, router]);
 
   useEffect(() => {
     if (currentUser && partnerId) {
-        const ids = [currentUser.uid, partnerId];
-        ids.sort();
-        setChatId(ids.join('_'));
+      const ids = [currentUser.uid, partnerId];
+      ids.sort();
+      setChatId(ids.join('_'));
     }
   }, [currentUser, partnerId]);
-  
+
   useEffect(() => {
     if (!partnerId || !firestore) {
       if (firestore) {
-          setLoading(false);
-          setChatError("Could not determine the chat partner from the URL.");
+        setLoading(false);
+        setChatError("Could not determine the chat partner from the URL.");
       }
       return;
     }
@@ -110,7 +118,7 @@ export default function ChatPage() {
         setPartner(null);
       }
     };
-    
+
     fetchPartnerData();
   }, [partnerId, firestore]);
 
@@ -126,123 +134,37 @@ export default function ChatPage() {
     }
   }, [userLocation, partner]);
 
-  useEffect(() => {
-    if (!chatId || !currentUser || !partnerId || !firestore) {
-      if(currentUser && partnerId && firestore) {
-        setLoading(true);
-      }
-      return;
-    };
-
-    const markChatAsRead = async () => {
+  // Mark chat as read
+  const markChatAsRead = useCallback(async () => {
+    if (!chatId || !firestore || !partnerId) return;
+    try {
       const chatDocRef = doc(firestore, 'chats', chatId);
       const chatDocSnap = await getDoc(chatDocRef);
       if (chatDocSnap.exists()) {
         const chatData = chatDocSnap.data();
         if (chatData.lastMessageSenderId === partnerId) {
           await updateDoc(chatDocRef, {
-            lastMessageSenderId: null 
+            lastMessageSenderId: null
           });
         }
       }
-    };
-
-    const checkBlocksAndFetchMessages = async () => {
-        try {
-          const currentUserInteractionsRef = doc(firestore, 'userInteractions', currentUser.uid);
-          const partnerInteractionsRef = doc(firestore, 'userInteractions', partnerId);
-
-          const [currentUserInteractionsSnap, partnerInteractionsSnap] = await Promise.all([
-            getDoc(currentUserInteractionsRef),
-            getDoc(partnerInteractionsRef)
-          ]);
-
-          if (currentUserInteractionsSnap.exists() && currentUserInteractionsSnap.data().blocked?.includes(partnerId)) {
-            setChatError("You have blocked this user. Unblock them to continue the conversation.");
-            setLoading(false);
-            return;
-          }
-
-          if (partnerInteractionsSnap.exists() && partnerInteractionsSnap.data().blocked?.includes(currentUser.uid)) {
-            setChatError("You can no longer message this user.");
-            setLoading(false);
-            return;
-          }
-          
-          await markChatAsRead();
-
-          const messagesCollectionRef = collection(firestore, `chats/${chatId}/messages`);
-          const messagesQuery = query(messagesCollectionRef, orderBy("timestamp", "asc"));
-
-          const unsubscribeFromMessages = onSnapshot(messagesQuery, snapshot => {
-            // Don't overwrite existing errors (like suspended profile)
-            if (!chatError) setChatError(null);
-
-            const fetchedMessages = snapshot.docs.map(doc => {
-              const data = doc.data();
-              return {
-                id: doc.id,
-                senderId: data.senderId,
-                text: data.text,
-                timestamp: data.timestamp as Timestamp,
-              };
-            });
-            setMessages(fetchedMessages as Message[]);
-            setLoading(false);
-          }, (error: any) => {
-              console.error("Error fetching messages: ", error);
-              if (error.code === 'permission-denied') {
-                  setChatError("You do not have permission to access this chat. This may be because it's not a mutual match.");
-              } else {
-                  setChatError("An error occurred while loading messages.");
-              }
-              setLoading(false);
-          });
-          return unsubscribeFromMessages;
-        } catch(error) {
-            console.error("Error checking block status: ", error);
-            setChatError("Failed to load chat information.");
-            setLoading(false);
-        }
+    } catch (error) {
+      console.error("Error marking chat as read:", error);
     }
-    
-    let unsubscribe: (() => void) | undefined;
-    const runEffect = async () => {
-        const unsub = await checkBlocksAndFetchMessages();
-        if (unsub) {
-            unsubscribe = unsub;
-        }
-    };
-    runEffect();
+  }, [chatId, firestore, partnerId]);
 
-    return () => {
-      if (unsubscribe) {
-        unsubscribe();
-      }
-    };
-  }, [chatId, currentUser, partnerId, toast, chatError, firestore]);
-
-
+  // Real-time listener for messages
   useEffect(() => {
-    if (scrollAreaRef.current) {
-        const scrollDiv = scrollAreaRef.current;
-        setTimeout(() => {
-            scrollDiv.scrollTo({ top: scrollDiv.scrollHeight, behavior: 'smooth' });
-        }, 100);
-    }
-  }, [messages]);
-
-  const handleSendMessage = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newMessage.trim() || !chatId || !currentUser || !partnerId || !firestore || isSending) return;
-    if (chatError && !chatError.includes('suspended')) {
-        toast({ title: "Cannot Send Message", description: chatError, variant: "destructive" });
-        return;
+    if (!chatId || !currentUser || !partnerId || !firestore) {
+      if (currentUser && partnerId && firestore) {
+        setLoading(true);
+      }
+      return;
     }
 
-    setIsSending(true);
-    
-    try {
+    const checkBlocksAndSetupListener = async () => {
+      try {
+        // Check blocks
         const currentUserInteractionsRef = doc(firestore, 'userInteractions', currentUser.uid);
         const partnerInteractionsRef = doc(firestore, 'userInteractions', partnerId);
 
@@ -252,25 +174,268 @@ export default function ChatPage() {
         ]);
 
         if (currentUserInteractionsSnap.exists() && currentUserInteractionsSnap.data().blocked?.includes(partnerId)) {
-          toast({ title: "Cannot Send Message", description: "You have blocked this user.", variant: "destructive" });
-          setIsSending(false);
-          router.refresh(); 
-          return;
+          setChatError("You have blocked this user. Unblock them to continue the conversation.");
+          setLoading(false);
+          return null;
         }
 
         if (partnerInteractionsSnap.exists() && partnerInteractionsSnap.data().blocked?.includes(currentUser.uid)) {
-          toast({ title: "Cannot Send Message", description: "You are blocked by this user.", variant: "destructive" });
-          setIsSending(false);
-          router.refresh();
-          return;
+          setChatError("You can no longer message this user.");
+          setLoading(false);
+          return null;
         }
-    } catch(error) {
-        console.error("Error checking block status on send:", error);
-        toast({ title: "Error", description: "Could not verify chat status. Please try again.", variant: "destructive" });
-        setIsSending(false);
+
+        await markChatAsRead();
+
+        // Real-time listener for latest messages (ordered ascending for display)
+        const messagesCollectionRef = collection(firestore, `chats/${chatId}/messages`);
+        const messagesQuery = query(
+          messagesCollectionRef,
+          orderBy("timestamp", "desc"),
+          limit(MESSAGES_PER_PAGE)
+        );
+
+        const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+          if (!chatError) setChatError(null);
+
+          const fetchedMessages = snapshot.docs.map(docSnap => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              senderId: data.senderId,
+              text: data.text,
+              timestamp: data.timestamp as Timestamp,
+            };
+          }).reverse(); // Reverse for chronological order
+
+          setMessages(prevMessages => {
+            // Merge with existing older messages, avoiding duplicates
+            const existingIds = new Set(prevMessages.map(m => m.id));
+            const newMsgs = fetchedMessages.filter(m => !existingIds.has(m.id));
+
+            if (prevMessages.length === 0) {
+              // Initial load
+              if (snapshot.docs.length > 0) {
+                setOldestDoc(snapshot.docs[snapshot.docs.length - 1]);
+              }
+              setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
+              setIsInitialLoad(false);
+              return fetchedMessages;
+            }
+
+            // Append new messages (real-time updates)
+            const allMessages = [...prevMessages];
+            newMsgs.forEach(msg => {
+              if (!allMessages.find(m => m.id === msg.id)) {
+                allMessages.push(msg);
+              }
+            });
+
+            // Sort by timestamp
+            allMessages.sort((a, b) => {
+              if (!a.timestamp && !b.timestamp) return 0;
+              if (!a.timestamp) return 1;
+              if (!b.timestamp) return -1;
+              return a.timestamp.seconds - b.timestamp.seconds;
+            });
+
+            return allMessages;
+          });
+
+          setLoading(false);
+        }, (error: any) => {
+          console.error("Error fetching messages:", error);
+          if (error.code === 'permission-denied') {
+            setChatError("You do not have permission to access this chat.");
+          } else {
+            setChatError("An error occurred while loading messages.");
+          }
+          setLoading(false);
+        });
+
+        return unsubscribe;
+      } catch (error) {
+        console.error("Error checking block status:", error);
+        setChatError("Failed to load chat information.");
+        setLoading(false);
+        return null;
+      }
+    };
+
+    let unsubscribe: (() => void) | null = null;
+
+    const runEffect = async () => {
+      const unsub = await checkBlocksAndSetupListener();
+      if (unsub) {
+        unsubscribe = unsub;
+      }
+    };
+    runEffect();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [chatId, currentUser, partnerId, firestore, chatError, markChatAsRead]);
+
+  // Load more messages (older messages)
+  const loadMoreMessages = useCallback(async () => {
+    if (!chatId || !firestore || !hasMore || loadingMore || !oldestDoc || !scrollAreaRef.current) return;
+
+    // Save current scroll position before loading
+    const scrollDiv = scrollAreaRef.current;
+    const previousScrollHeight = scrollDiv.scrollHeight;
+    const previousScrollTop = scrollDiv.scrollTop;
+
+    setLoadingMore(true);
+    console.log('📥 Loading more messages...');
+
+    try {
+      const messagesCollectionRef = collection(firestore, `chats/${chatId}/messages`);
+      const messagesQuery = query(
+        messagesCollectionRef,
+        orderBy("timestamp", "desc"),
+        startAfter(oldestDoc),
+        limit(MESSAGES_PER_PAGE)
+      );
+
+      const snapshot = await getDocs(messagesQuery);
+
+      if (snapshot.empty) {
+        setHasMore(false);
+        setLoadingMore(false);
+        console.log('📭 No more messages to load');
         return;
+      }
+
+      const olderMessages = snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          senderId: data.senderId,
+          text: data.text,
+          timestamp: data.timestamp as Timestamp,
+        };
+      }).reverse(); // Reverse for chronological order
+
+      // Prepend older messages, avoiding duplicates
+      setMessages(prev => {
+        const existingIds = new Set(prev.map(m => m.id));
+        const uniqueOlder = olderMessages.filter(m => !existingIds.has(m.id));
+        return [...uniqueOlder, ...prev];
+      });
+
+      setOldestDoc(snapshot.docs[snapshot.docs.length - 1]);
+      setHasMore(snapshot.docs.length === MESSAGES_PER_PAGE);
+
+      // Restore scroll position after messages are prepended
+      setTimeout(() => {
+        if (scrollAreaRef.current) {
+          const newScrollHeight = scrollAreaRef.current.scrollHeight;
+          const heightDifference = newScrollHeight - previousScrollHeight;
+          scrollAreaRef.current.scrollTop = previousScrollTop + heightDifference;
+        }
+      }, 50);
+
+      console.log(`📨 Loaded ${olderMessages.length} more messages`);
+    } catch (error) {
+      console.error("Error loading more messages:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load older messages.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [chatId, firestore, hasMore, loadingMore, oldestDoc, toast]);
+
+  // Handle scroll for infinite loading
+  const handleScroll = useCallback(() => {
+    if (!scrollAreaRef.current || loadingMore || !hasMore) return;
+
+    const scrollTop = scrollAreaRef.current.scrollTop;
+
+    // If scrolled near top (within 100px), load more
+    if (scrollTop < 100) {
+      loadMoreMessages();
+    }
+  }, [loadMoreMessages, loadingMore, hasMore]);
+
+  // Scroll to bottom on initial load and new messages
+  const hasScrolledInitial = useRef(false);
+
+  useEffect(() => {
+    if (scrollAreaRef.current && messages.length > 0 && !loading) {
+      const scrollDiv = scrollAreaRef.current;
+
+      // Always scroll to bottom on first load
+      if (!hasScrolledInitial.current) {
+        hasScrolledInitial.current = true;
+        setTimeout(() => {
+          scrollDiv.scrollTo({ top: scrollDiv.scrollHeight, behavior: 'auto' });
+        }, 100);
+        return;
+      }
+
+      // For subsequent updates (real-time messages), only auto-scroll if user is near bottom  
+      const isNearBottom = scrollDiv.scrollHeight - scrollDiv.scrollTop - scrollDiv.clientHeight < 150;
+      if (isNearBottom) {
+        setTimeout(() => {
+          scrollDiv.scrollTo({ top: scrollDiv.scrollHeight, behavior: 'smooth' });
+        }, 100);
+      }
+    }
+  }, [messages, loading]);
+
+  // Add scroll event listener
+  useEffect(() => {
+    const scrollDiv = scrollAreaRef.current;
+    if (scrollDiv) {
+      scrollDiv.addEventListener('scroll', handleScroll);
+      return () => scrollDiv.removeEventListener('scroll', handleScroll);
+    }
+  }, [handleScroll]);
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !chatId || !currentUser || !partnerId || !firestore || isSending) return;
+    if (chatError && !chatError.includes('suspended')) {
+      toast({ title: "Cannot Send Message", description: chatError, variant: "destructive" });
+      return;
     }
 
+    setIsSending(true);
+
+    try {
+      const currentUserInteractionsRef = doc(firestore, 'userInteractions', currentUser.uid);
+      const partnerInteractionsRef = doc(firestore, 'userInteractions', partnerId);
+
+      const [currentUserInteractionsSnap, partnerInteractionsSnap] = await Promise.all([
+        getDoc(currentUserInteractionsRef),
+        getDoc(partnerInteractionsRef)
+      ]);
+
+      if (currentUserInteractionsSnap.exists() && currentUserInteractionsSnap.data().blocked?.includes(partnerId)) {
+        toast({ title: "Cannot Send Message", description: "You have blocked this user.", variant: "destructive" });
+        setIsSending(false);
+        router.refresh();
+        return;
+      }
+
+      if (partnerInteractionsSnap.exists() && partnerInteractionsSnap.data().blocked?.includes(currentUser.uid)) {
+        toast({ title: "Cannot Send Message", description: "You are blocked by this user.", variant: "destructive" });
+        setIsSending(false);
+        router.refresh();
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking block status on send:", error);
+      toast({ title: "Error", description: "Could not verify chat status. Please try again.", variant: "destructive" });
+      setIsSending(false);
+      return;
+    }
 
     const textToSend = newMessage.trim();
     setNewMessage("");
@@ -284,23 +449,25 @@ export default function ChatPage() {
         lastMessageTimestamp: serverTimestamp(),
         lastMessageSenderId: currentUser.uid,
       });
-      
+
       await addDoc(messagesCollectionRef, {
         senderId: currentUser.uid,
         text: textToSend,
         timestamp: serverTimestamp(),
       });
 
+      // Message will appear via onSnapshot listener (real-time)
+
     } catch (error: any) {
-        setNewMessage(textToSend); // Restore message on failure
-        console.error("Error sending message:", error);
-        toast({
-          title: "Message Not Sent",
-          description: "There was a problem sending your message. Please try again.",
-          variant: "destructive",
-        });
+      setNewMessage(textToSend); // Restore message on failure
+      console.error("Error sending message:", error);
+      toast({
+        title: "Message Not Sent",
+        description: "There was a problem sending your message. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-        setIsSending(false);
+      setIsSending(false);
     }
   };
 
@@ -315,16 +482,16 @@ export default function ChatPage() {
 
   if (chatError && !chatError.includes('suspended')) {
     return (
-        <div className="flex flex-col items-center justify-center h-full text-center p-4 font-sans">
-            { chatError.includes('block') ? <UserX className="mx-auto h-16 w-16 text-destructive" /> : <AlertTriangle className="mx-auto h-16 w-16 text-destructive" />}
-            <h2 className="mt-6 text-2xl font-semibold font-serif">Chat Unavailable</h2>
-            <p className="mt-2 text-muted-foreground">{chatError}</p>
-            <Link href="/messages" className="mt-6">
-                <Button>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Messages
-                </Button>
-            </Link>
-        </div>
+      <div className="flex flex-col items-center justify-center h-full text-center p-4 font-sans">
+        {chatError.includes('block') ? <UserX className="mx-auto h-16 w-16 text-destructive" /> : <AlertTriangle className="mx-auto h-16 w-16 text-destructive" />}
+        <h2 className="mt-6 text-2xl font-semibold font-serif">Chat Unavailable</h2>
+        <p className="mt-2 text-muted-foreground">{chatError}</p>
+        <Link href="/messages" className="mt-6">
+          <Button>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Messages
+          </Button>
+        </Link>
+      </div>
     );
   }
 
@@ -359,6 +526,26 @@ export default function ChatPage() {
       </div>
 
       <ScrollArea viewportRef={scrollAreaRef} className="flex-1 p-4 space-y-2 overflow-y-auto bg-background/50">
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="flex justify-center mb-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={loadMoreMessages}
+              disabled={loadingMore}
+              className="text-muted-foreground"
+            >
+              {loadingMore ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <ChevronUp className="h-4 w-4 mr-2" />
+              )}
+              {loadingMore ? 'Loading...' : 'Load older messages'}
+            </Button>
+          </div>
+        )}
+
         {messages.length === 0 && (
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-5 w-5" />
@@ -367,12 +554,11 @@ export default function ChatPage() {
           </Alert>
         )}
 
-        {messages.map(msg => (
+        {messages.map((msg, index) => (
           <div
-            key={msg.id}
-            className={`flex gap-2 items-start ${
-              msg.senderId === currentUser?.uid ? "justify-end" : "justify-start"
-            }`}
+            key={`${msg.id}-${index}`}
+            className={`flex gap-2 items-start ${msg.senderId === currentUser?.uid ? "justify-end" : "justify-start"
+              }`}
           >
             {msg.senderId !== currentUser?.uid && partner && (
               <Avatar className="h-8 w-8 shrink-0">
@@ -381,9 +567,8 @@ export default function ChatPage() {
               </Avatar>
             )}
             <div
-              className={`px-3 py-2 rounded-lg max-w-[70%] break-words shadow ${
-                msg.senderId === currentUser?.uid ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-              }`}
+              className={`px-3 py-2 rounded-lg max-w-[70%] break-words shadow ${msg.senderId === currentUser?.uid ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                }`}
             >
               <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.text}</p>
               <div className={`text-xs mt-1 text-right ${msg.senderId === currentUser?.uid ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>{hydrated && msg.timestamp ? new Date(msg.timestamp.seconds * 1000).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : ""}</div>
@@ -394,7 +579,7 @@ export default function ChatPage() {
 
       <form onSubmit={handleSendMessage} className="p-4 border-t border-border bg-card">
         {chatError && chatError.includes('suspended') && (
-            <div className="text-center text-xs text-destructive mb-2">{chatError}</div>
+          <div className="text-center text-xs text-destructive mb-2">{chatError}</div>
         )}
         <div className="flex items-center gap-2">
           <Input
