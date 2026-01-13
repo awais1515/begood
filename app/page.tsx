@@ -3,7 +3,6 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import BeGoodTitle from '@/components/BeGoodTitle';
 import { Loader2 } from 'lucide-react';
 import { useAuth } from '@/firebase/provider';
 
@@ -14,26 +13,17 @@ export default function SplashPage() {
   useEffect(() => {
     if (loading) return;
 
-    // Give the animation a moment to feel smooth before redirecting
-    const timer = setTimeout(() => {
-      if (user) {
-        router.push('/matches');
-      } else {
-        router.push('/login');
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
+    // Redirect immediately without splash delay
+    if (user) {
+      router.replace('/matches');
+    } else {
+      router.replace('/login');
+    }
   }, [user, loading, router]);
 
   return (
-    <>
-      <BeGoodTitle />
-      {loading && (
-        <div className="fixed inset-0 flex items-center justify-center bg-background/50">
-          <Loader2 className="h-12 w-12 animate-spin text-primary" />
-        </div>
-      )}
-    </>
+    <div className="fixed inset-0 flex items-center justify-center bg-[#121212]">
+      <Loader2 className="h-12 w-12 animate-spin text-[#C64D68]" />
+    </div>
   );
 }

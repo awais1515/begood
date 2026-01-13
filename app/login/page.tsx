@@ -76,9 +76,7 @@ export default function LoginPage() {
         {/* Center Content */}
         <div className="flex flex-col items-center gap-4 z-10 animate-in fade-in zoom-in-95 duration-1000">
           <Image src="/Logo.svg" alt="BeGood" width={320} height={140} priority />
-          <p className="text-[#E296A3] text-base tracking-wide mt-2 animate-in fade-in duration-1000 delay-500">
-            Find your good girl or good boy.
-          </p>
+         
         </div>
 
         {/* Bottom Left Flowers */}
@@ -107,7 +105,6 @@ export default function LoginPage() {
         <div className="flex-[0.9] flex flex-col items-center justify-center py-12 px-9 gap-2">
           <h1 className="text-white text-3xl font-semibold mb-4 ">Welcome</h1>
           <Image src="/Logo.svg" alt="BeGood" width={180} height={78} priority />
-          <p className="text-[#E296A3]/70 text-xs mt-2">Find your good girl or good boy.</p>
         </div>
 
         {/* Divider */}

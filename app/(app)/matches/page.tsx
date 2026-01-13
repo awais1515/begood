@@ -454,7 +454,7 @@ export default function MatchesPage() {
 
       <div className="flex flex-col flex-1 h-full">
         {/* Action Buttons - Right aligned below header */}
-        <div className="flex justify-end px-6 py-3">
+        <div className="flex justify-end px-6 py-1">
           <div className="flex items-center gap-2">
             <button
               onClick={() => fetchData()}
@@ -474,7 +474,7 @@ export default function MatchesPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex items-center justify-center px-6 pb-6">
+        <div className="flex-1 flex items-center justify-center px-6 pb-2">
           {errorState.hasError ? (
             <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg max-w-sm w-full">
               <AlertTriangle className="mx-auto h-12 w-12" />
@@ -487,9 +487,9 @@ export default function MatchesPage() {
           ) : currentProfile ? (
             <div className="relative w-full max-w-sm">
               {/* Profile Card */}
-              <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20">
+              <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20 mt-[-30px]">
                 {/* Image Section */}
-                <div className="relative w-full aspect-[3/4]">
+                <div className="relative w-full h-[calc(100vh-140px)]">
                   <Image
                     src={currentProfile.mainImage || "https://placehold.co/600x800.png"}
                     alt={currentProfile.username}
@@ -534,13 +534,13 @@ export default function MatchesPage() {
 
                       {/* Persona Badge */}
                       {currentProfile.personas && currentProfile.personas.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
+                        <div className="flex flex-wrap gap-2 mt-3 ">
                           {currentProfile.personas.map((persona, idx) => {
                             const personaInfo = personaOptions.find(p => p.id === persona);
                             return (
                               <span
                                 key={idx}
-                                className="px-3 py-1 text-xs font-semibold text-white rounded-lg border border-white/40 bg-white/5 backdrop-blur-sm"
+                                className="px-3 py-1 text-xs font-semibold text-white rounded-[5px] border border-white/40 bg-white/5 backdrop-blur-sm"
                               >
                                 {personaInfo?.label || formatDisplayValue(persona)}
                               </span>
@@ -554,7 +554,7 @@ export default function MatchesPage() {
                         {currentProfile?.interests.slice(0, 8).map((interest, idx) => (
                           <span
                             key={idx}
-                            className="px-2.5 py-1 text-[10px] font-medium bg-[#3f2b32] text-white/90 rounded-full border border-white/5 shadow-sm"
+                            className="px-2.5 py-1 text-[10px] font-medium bg-[#792C3D] text-white/90 rounded-full border border-white/5 shadow-sm"
                           >
                             {interest}
                           </span>

@@ -505,7 +505,7 @@ export default function ChatPage() {
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-card shadow-xl rounded-lg overflow-hidden font-sans">
       <div className="flex items-center p-4 border-b border-border">
         <Link href="/messages" passHref legacyBehavior>
-          <Button variant="ghost" size="icon" className="mr-2 md:hidden" asChild>
+          <Button variant="ghost" size="icon" className="mr-2" asChild>
             <a><ArrowLeft className="h-6 w-6" /></a>
           </Button>
         </Link>

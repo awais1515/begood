@@ -91,33 +91,26 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, [user, firestore]);
 
-  // Track requests count (for Likes)
+  // Track requests count (for Likes) - Real-time
   useEffect(() => {
     if (!user || !firestore) return;
 
-    const fetchRequestsCount = async () => {
-      try {
-        const interactionsDocRef = doc(firestore, 'userInteractions', user.uid);
-        const interactionsSnap = await getDoc(interactionsDocRef);
+    const interactionsDocRef = doc(firestore, 'userInteractions', user.uid);
 
-        if (interactionsSnap.exists()) {
-          const data = interactionsSnap.data();
-          const requests = data.requests || [];
-          setRequestsCount(requests.length);
-        } else {
-          setRequestsCount(0);
-        }
-      } catch (error) {
-        console.error('Error fetching requests count:', error);
+    const unsubscribe = onSnapshot(interactionsDocRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        const requests = data.requests || [];
+        setRequestsCount(requests.length);
+      } else {
         setRequestsCount(0);
       }
-    };
+    }, (error) => {
+      console.error('Error listening to requests count:', error);
+      setRequestsCount(0);
+    });
 
-    fetchRequestsCount();
-    // Refresh count every 30 seconds
-    const interval = setInterval(fetchRequestsCount, 30000);
-
-    return () => clearInterval(interval);
+    return () => unsubscribe();
   }, [user, firestore]);
 
   const handleLogout = async () => {
@@ -132,8 +125,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   const navItems = [
     { title: "Discover", href: "/matches", icon: Search },
-    { title: "Likes", href: "/requests", icon: Heart, badge: requestsCount },
-    { title: "Messages", href: "/messages", icon: MessageSquare, badge: unreadCount },
+    { title: "Likes", href: "/requests", icon: Heart, badge: requestsCount !== 0 ? requestsCount : "" },
+    { title: "Messages", href: "/messages", icon: MessageSquare, badge: unreadCount !== 0 ? unreadCount : "" },
     { title: "Profile", href: "/profile/me", icon: User },
     { title: "Policies", href: "/policies", icon: Shield },
   ];
@@ -160,7 +153,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen w-full bg-background font-sans">
       {/* Sidebar - Increased width to w-64 (16rem) */}
-      <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r border-white/5 bg-[#1a1a1a] z-50 shadow-xl">
+      <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r border-white/5 bg-gradient-to-t from-[#792C3D] via-[#1B1B1B] via-50% to-[#1B1B1B] z-50 shadow-xl">
         {/* Logo - Using SVG from public folder */}
         <div className="flex flex-col items-center pt-8 pb-10">
           <div className="relative w-32 h-16">
@@ -182,7 +175,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               key={item.href}
               href={item.href}
               className={`relative flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isActive(item.href)
-                ? 'bg-gradient-to-r from-[#A42347] to-[#8B1D3B] text-white shadow-[0_4px_20px_-5px_rgba(164,35,71,0.4)]'
+                ? 'bg-gradient-to-b from-[#9F3C52] to-[#C64D68] text-white shadow-[0_4px_20px_-5px_rgba(159,60,82,0.4)]'
                 : 'text-[#C64D68] hover:bg-white/5 hover:text-white'
                 }`}
             >
@@ -221,7 +214,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content - Adjusted margin to ml-64 */}
       <main className="flex-1 ml-64 flex flex-col bg-[#121212]">
         {/* Top Header/Navbar */}
-        <header className="sticky top-0 z-40 flex items-center justify-between px-8 py-5 bg-[#121212]/95 backdrop-blur-sm border-b border-white/5">
+        <header className="sticky top-0 z-40 flex items-center justify-between px-8 py-3 bg-[#121212]/95 backdrop-blur-sm border-b border-white/5">
           {/* Page Title */}
           <h1 className="text-2xl font-bold text-white tracking-tight">{getPageTitle()}</h1>
 
