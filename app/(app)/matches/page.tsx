@@ -461,14 +461,14 @@ export default function MatchesPage() {
               className="p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
               aria-label="Reload profiles"
             >
-              <RefreshCw className="h-5 w-5 text-muted-foreground" />
+              <RefreshCw className="h-5 w-5 text-[#C64D68]" />
             </button>
             <button
               onClick={() => setIsFilterDialogOpen(true)}
               className="p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
               aria-label="Open search filters"
             >
-              <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+              <SlidersHorizontal className="h-5 w-5 text-[#C64D68]" />
             </button>
           </div>
         </div>
