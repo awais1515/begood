@@ -8,10 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Heart, Loader2, X, SlidersHorizontal, Search, BookOpen, RefreshCw, Users, HelpCircle, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { AppLogo } from "@/components/AppLogo";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -389,7 +388,7 @@ export default function MatchesPage() {
 
   if (authLoading || loadingProfiles) {
     return (
-      <div className="flex items-center justify-center h-[calc(100vh-144px)]">
+      <div className="flex items-center justify-center h-[calc(100vh-80px)]">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
       </div>
     );
@@ -397,7 +396,7 @@ export default function MatchesPage() {
 
   if (!currentUser) {
     return (
-      <div className="flex flex-col items-center justify-center h-[calc(100vh-144px)] text-center p-4">
+      <div className="flex flex-col items-center justify-center h-[calc(100vh-80px)] text-center p-4">
         <h2 className="text-2xl font-semibold font-serif">Please Log In</h2>
         <p className="mt-2 text-muted-foreground">You need to be logged in to discover new profiles.</p>
         <Link href="/" className="mt-4">
@@ -408,6 +407,9 @@ export default function MatchesPage() {
   }
 
   const currentProfile = profiles[0];
+
+  // Get interests/hobbies from profile (mock data for now, should come from user profile)
+  const interests = currentProfile?.dataAiHints || ['Football', 'Singing', 'Nature', 'Baking', 'Hiking', 'Book Shopping', 'Horse Riding', 'Tennis'];
 
   return (
     <>
@@ -450,83 +452,156 @@ export default function MatchesPage() {
         </div>
       )}
 
-      <div className="container mx-auto flex flex-col items-center justify-center p-4 md:p-8 min-h-[calc(100vh-144px)]">
-        <h1 className="sr-only">Discover Matches</h1>
-        <div className="mb-6 w-full max-w-sm text-center">
-          <div className="relative flex items-center justify-center">
-            <Button variant="ghost" size="icon" className="absolute left-0 top-1/2 -translate-y-1/2" aria-label="Reload profiles" onClick={() => fetchData()}>
-              <RefreshCw className="h-6 w-6" />
-            </Button>
-            <AppLogo className="h-10 text-3xl text-primary" />
-            <Button variant="ghost" size="icon" className="absolute right-0 top-1/2 -translate-y-1/2" aria-label="Open search filters" onClick={() => setIsFilterDialogOpen(true)}>
-              <SlidersHorizontal className="h-6 w-6" />
-            </Button>
+      <div className="flex flex-col flex-1 h-full">
+        {/* Action Buttons - Right aligned below header */}
+        <div className="flex justify-end px-6 py-3">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => fetchData()}
+              className="p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+              aria-label="Reload profiles"
+            >
+              <RefreshCw className="h-5 w-5 text-muted-foreground" />
+            </button>
+            <button
+              onClick={() => setIsFilterDialogOpen(true)}
+              className="p-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+              aria-label="Open search filters"
+            >
+              <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
+            </button>
           </div>
-          <p className="font-sans text-primary text-lg italic mt-2">Find your good girl or good boy!</p>
         </div>
 
-        {errorState.hasError ? (
-          <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg max-w-sm w-full">
-            <AlertTriangle className="mx-auto h-12 w-12" />
-            <h2 className="mt-4 text-2xl font-semibold font-serif">Error Fetching Profiles</h2>
-            <p className="mt-2">{errorState.message}</p>
-            <Button variant="outline" onClick={() => fetchData()} className="mt-4 text-destructive border-destructive-foreground/50 hover:bg-destructive-foreground/10 hover:text-destructive-foreground">
-              <RefreshCw className="mr-2 h-4 w-4" /> Try Again
-            </Button>
-          </div>
-        ) : currentProfile ? (
-          <Card key={currentProfile.id} className="overflow-hidden flex flex-col shadow-2xl w-full max-w-sm rounded-2xl transition-all duration-500 ease-in-out transform hover:scale-105">
-            <div className="block relative w-full aspect-[3/4] flex-grow">
-              <Image
-                src={currentProfile.mainImage || "https://placehold.co/600x800.png"}
-                alt={currentProfile.username}
-                fill
-                sizes="(max-width: 640px) 100vw, 384px"
-                className="object-cover"
-                data-ai-hint={currentProfile.dataAiHints?.[0] || 'person'}
-                priority
-              />
-              <Link href={`/profile/${currentProfile.id}`} className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent flex flex-col justify-end p-4 text-primary">
-                <h2 className="text-2xl font-semibold font-serif hover:underline">{currentProfile.username}{currentProfile.age ? `, ${currentProfile.age}` : ''}</h2>
-                {currentProfile.bio && <p className="text-sm mt-1 line-clamp-2">{currentProfile.bio}</p>}
-              </Link>
+        {/* Main Content Area */}
+        <div className="flex-1 flex items-center justify-center px-6 pb-6">
+          {errorState.hasError ? (
+            <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg max-w-sm w-full">
+              <AlertTriangle className="mx-auto h-12 w-12" />
+              <h2 className="mt-4 text-2xl font-semibold font-serif">Error Fetching Profiles</h2>
+              <p className="mt-2">{errorState.message}</p>
+              <Button variant="outline" onClick={() => fetchData()} className="mt-4 text-destructive border-destructive-foreground/50 hover:bg-destructive-foreground/10 hover:text-destructive-foreground">
+                <RefreshCw className="mr-2 h-4 w-4" /> Try Again
+              </Button>
             </div>
+          ) : currentProfile ? (
+            <div className="relative w-full max-w-sm">
+              {/* Profile Card */}
+              <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20">
+                {/* Image Section */}
+                <div className="relative w-full aspect-[3/4]">
+                  <Image
+                    src={currentProfile.mainImage || "https://placehold.co/600x800.png"}
+                    alt={currentProfile.username}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 384px"
+                    className="object-cover"
+                    priority
+                  />
+                  {/* Gradient overlay - Pink at bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#792C3D] via-[#792C3D]/60 to-transparent" />
 
-            <CardFooter className="grid grid-cols-2 gap-px p-0 bg-border">
-              <Button
-                onClick={() => handleInteraction(currentProfile, "disliked")}
-                variant="ghost"
-                className="bg-card hover:bg-destructive/10 text-destructive rounded-none rounded-bl-2xl py-6 h-auto"
-                aria-label={`Dislike ${currentProfile.username}`}
-                disabled={isInteracting}
-              >
-                <X className="h-8 w-8" />
-              </Button>
-              <Button
-                onClick={() => handleInteraction(currentProfile, "liked")}
-                variant="success-ghost"
-                className="bg-card rounded-none rounded-br-2xl py-6 h-auto transition-colors duration-200"
-                aria-label={`Like ${currentProfile.username}`}
-                disabled={isInteracting}
-              >
-                <Heart className="h-8 w-8" />
-              </Button>
-            </CardFooter>
-          </Card>
-        ) : (
-          <div className="flex flex-col items-center justify-center text-center p-4">
-            <h2 className="text-2xl font-semibold font-serif">That's Everyone For Now</h2>
-            <p className="mt-2 text-muted-foreground">You've seen all available profiles. Check back later or adjust your filters!</p>
-            <div className="flex items-center gap-4 mt-4">
-              <Button variant="outline" onClick={() => setIsFilterDialogOpen(true)}>
-                <SlidersHorizontal className="mr-2 h-4 w-4" /> Adjust Filters
-              </Button>
-              <Button onClick={() => fetchData()}>
-                <RefreshCw className="mr-2 h-4 w-4" /> Reload Profiles
-              </Button>
+                  {/* Content overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
+                    <div className="flex flex-col gap-1">
+                      {/* Name */}
+                      <Link href={`/profile/${currentProfile.id}`}>
+                        <h2 className="text-3xl font-bold text-white tracking-wide hover:underline drop-shadow-md">
+                          {currentProfile.name || currentProfile.username}
+                        </h2>
+                      </Link>
+
+                      {/* Active Status */}
+                      {/* <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+                        <span className="text-xs font-semibold text-green-400">Active</span>
+                      </div> */}
+
+                      {/* Age & Gender */}
+                      <div className="text-white/90 font-medium text-sm mt-1">
+                        {currentProfile.age && <span>{currentProfile.age} Years</span>}
+                        {currentProfile.age && currentProfile.gender && <span className="mx-2 text-white/60">|</span>}
+                        {currentProfile.gender && <span>{formatDisplayValue(currentProfile.gender)}</span>}
+                      </div>
+
+                      {/* Location */}
+                      {currentProfile.country && (
+                        <div className="flex items-center gap-1 mt-0.5 text-white/80 text-sm">
+                          <span className="text-white fill-current w-3 h-3"><Image src="/location.svg" alt="Location" width={20} height={20} /></span>
+                          <span>{currentProfile.country}</span>
+                        </div>
+                      )}
+
+                      {/* Persona Badge */}
+                      {currentProfile.personas && currentProfile.personas.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          {currentProfile.personas.map((persona, idx) => {
+                            const personaInfo = personaOptions.find(p => p.id === persona);
+                            return (
+                              <span
+                                key={idx}
+                                className="px-3 py-1 text-xs font-semibold text-white rounded-lg border border-white/40 bg-white/5 backdrop-blur-sm"
+                              >
+                                {personaInfo?.label || formatDisplayValue(persona)}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Interest Tags */}
+                      <div className="flex flex-wrap gap-1.5 mt-3 pr-20">
+                        {currentProfile?.interests.slice(0, 8).map((interest, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2.5 py-1 text-[10px] font-medium bg-[#3f2b32] text-white/90 rounded-full border border-white/5 shadow-sm"
+                          >
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Action Buttons - Absolute positioned bottom right in card */}
+                    <div className="absolute bottom-5 right-5 flex gap-3 z-30">
+                      <Button
+                        onClick={() => handleInteraction(currentProfile, "disliked")}
+                        size="icon"
+                        className="h-10 w-10 rounded-full bg-white hover:bg-white/90 text-black hover:text-black/80 transition-all duration-200 shadow-xl border border-white/20"
+                        aria-label={`Dislike ${currentProfile.username}`}
+                        disabled={isInteracting}
+                      >
+                        <X className="h-5 w-5 stroke-[3]" />
+                      </Button>
+                      <Button
+                        onClick={() => handleInteraction(currentProfile, "liked")}
+                        size="icon"
+                        className="h-10 w-10 rounded-full bg-white hover:bg-white/90 text-[#FF4D4D] hover:text-[#FF4D4D]/80 transition-all duration-200 shadow-xl border border-white/20"
+                        aria-label={`Like ${currentProfile.username}`}
+                        disabled={isInteracting}
+                      >
+                        <Heart className="h-5 w-5 fill-current" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </Card>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="flex flex-col items-center justify-center text-center p-4">
+              <h2 className="text-2xl font-semibold font-serif">That's Everyone For Now</h2>
+              <p className="mt-2 text-muted-foreground">You've seen all available profiles. Check back later or adjust your filters!</p>
+              <div className="flex items-center gap-4 mt-4">
+                <Button variant="outline" onClick={() => setIsFilterDialogOpen(true)}>
+                  <SlidersHorizontal className="mr-2 h-4 w-4" /> Adjust Filters
+                </Button>
+                <Button onClick={() => fetchData()}>
+                  <RefreshCw className="mr-2 h-4 w-4" /> Reload Profiles
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>
   );

@@ -1,0 +1,39 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rose Flower Ornament for Top Right Corner -->
+  <g opacity="0.8">
+    <!-- Main Rose -->
+    <ellipse cx="160" cy="40" rx="25" ry="20" fill="#C64D68" opacity="0.7"/>
+    <ellipse cx="155" cy="35" rx="18" ry="14" fill="#DB6F84" opacity="0.8"/>
+    <ellipse cx="150" cy="30" rx="12" ry="10" fill="#E296A3" opacity="0.9"/>
+    <ellipse cx="147" cy="28" rx="6" ry="5" fill="#C64D68"/>
+    
+    <!-- Second Rose -->
+    <ellipse cx="180" cy="70" rx="20" ry="16" fill="#C64D68" opacity="0.6"/>
+    <ellipse cx="176" cy="66" rx="14" ry="11" fill="#DB6F84" opacity="0.7"/>
+    <ellipse cx="173" cy="63" rx="9" ry="7" fill="#E296A3" opacity="0.8"/>
+    
+    <!-- Small Rose -->
+    <ellipse cx="140" cy="75" rx="14" ry="11" fill="#C64D68" opacity="0.5"/>
+    <ellipse cx="137" cy="72" rx="10" ry="8" fill="#DB6F84" opacity="0.6"/>
+    <ellipse cx="135" cy="70" rx="6" ry="5" fill="#E296A3" opacity="0.7"/>
+    
+    <!-- Vines and Swirls -->
+    <path d="M120 90 Q130 60 150 55 Q140 50 165 30" stroke="#C64D68" stroke-width="1.5" fill="none" opacity="0.6"/>
+    <path d="M130 100 Q145 80 160 75 Q155 70 175 55" stroke="#DB6F84" stroke-width="1" fill="none" opacity="0.5"/>
+    <path d="M140 95 Q155 75 165 70" stroke="#E296A3" stroke-width="0.8" fill="none" opacity="0.5"/>
+    
+    <!-- Decorative Leaves -->
+    <ellipse cx="125" cy="85" rx="8" ry="3" transform="rotate(-30 125 85)" fill="#C64D68" opacity="0.5"/>
+    <ellipse cx="135" cy="90" rx="6" ry="2.5" transform="rotate(-40 135 90)" fill="#DB6F84" opacity="0.5"/>
+    <ellipse cx="175" cy="50" rx="7" ry="2.5" transform="rotate(45 175 50)" fill="#C64D68" opacity="0.4"/>
+    
+    <!-- Small Dots/Buds -->
+    <circle cx="118" cy="78" r="2" fill="#E296A3" opacity="0.6"/>
+    <circle cx="190" cy="85" r="2.5" fill="#DB6F84" opacity="0.5"/>
+    <circle cx="145" cy="25" r="1.5" fill="#E296A3" opacity="0.7"/>
+    
+    <!-- Curly Vine Details -->
+    <path d="M110 95 Q120 88 118 80" stroke="#C64D68" stroke-width="0.8" fill="none" opacity="0.4"/>
+    <path d="M185 80 Q192 75 190 65" stroke="#DB6F84" stroke-width="0.8" fill="none" opacity="0.4"/>
+  </g>
+</svg>

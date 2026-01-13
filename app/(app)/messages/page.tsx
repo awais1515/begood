@@ -160,60 +160,98 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <h1 className="text-4xl font-bold font-serif mb-8 text-center md:text-left">Messages</h1>
+    <div className="max-w-5xl mx-auto p-6 h-full">
+      <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Messages</h1>
+      <p className="text-muted-foreground mb-8">Start a conversation with your matches</p>
 
-      <Card className="shadow-xl font-sans rounded-xl">
-        <CardHeader className="border-b">
-          <CardTitle className="text-3xl font-serif text-primary">Your Matches</CardTitle>
-          <CardDescription className="font-sans text-base">
-            Start a conversation with your matches
-          </CardDescription>
-          <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <Card className="bg-[#1a1a1a] border-white/5 text-white shadow-xl rounded-3xl overflow-hidden h-[calc(100vh-200px)] flex flex-col">
+        <CardHeader className="border-b border-white/5 px-6 py-5 shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl font-semibold text-white tracking-wide">Your Matches</CardTitle>
+              <CardDescription className="text-white/40 mt-1">
+                Recent conversations
+              </CardDescription>
+            </div>
+            <Badge variant="secondary" className="bg-[#A42347]/10 text-[#A42347] hover:bg-[#A42347]/20 border-0 px-3 py-1">
+              {filteredMatches.length} Matches
+            </Badge>
+          </div>
+
+          <div className="relative mt-6">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <Input
               placeholder="Search matches..."
-              className="pl-10 bg-background"
+              className="pl-10 bg-[#121212] border-white/5 text-white placeholder:text-white/30 focus-visible:ring-[#A42347]/50 h-11 rounded-xl"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </CardHeader>
-        <CardContent className="p-0">
-          {filteredMatches.length === 0 ? (
-            <div className="p-10 text-center text-muted-foreground">
-              <MessageCircle className="mx-auto h-24 w-24 opacity-30" />
-              <p className="mt-6 text-xl">
-                {searchTerm ? "No Matching Conversations" : "No Matches Yet"}
-              </p>
-              <p className="italic">
-                {searchTerm ? "Try a different search term." : "Accept requests to start chatting!"}
-              </p>
-            </div>
-          ) : (
-            <ul className="divide-y divide-border">
-              {filteredMatches.map((match) => (
-                <li key={match.id}>
-                  <Link href={`/messages/${match.id}`} className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors">
-                    <Avatar className="h-12 w-12">
-                      <AvatarImage src={`${match.avatar}?id=${match.id}`} alt={match.username} data-ai-hint={match.dataAiHint} />
-                      <AvatarFallback>{match.username.substring(0, 1).toUpperCase()}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold font-serif text-lg">
-                        {match.username}
-                        {match.age && <span className="text-muted-foreground text-sm ml-2">{match.age}</span>}
-                      </h3>
-                      <p className="text-sm text-muted-foreground truncate">{match.lastMessage}</p>
-                    </div>
-                    {match.unread && (
-                      <Badge variant="destructive" className="shrink-0">New</Badge>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
+        <CardContent className="p-0 flex-1 overflow-hidden">
+          <ScrollArea className="h-full">
+            {filteredMatches.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-center px-4 h-full">
+                <div className="h-20 w-20 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                  <MessageCircle className="h-10 w-10 text-white/20" />
+                </div>
+                <h3 className="text-xl font-medium text-white mb-2">
+                  {searchTerm ? "No Matching Conversations" : "No Matches Yet"}
+                </h3>
+                <p className="text-white/40 max-w-[250px]">
+                  {searchTerm ? "Try a different search term." : "Accept requests to start chatting!"}
+                </p>
+              </div>
+            ) : (
+              <ul className="divide-y divide-white/5">
+                {filteredMatches.map((match) => (
+                  <li key={match.id}>
+                    <Link
+                      href={`/messages/${match.id}`}
+                      className="flex items-center gap-5 p-4 sm:px-6 sm:py-5 hover:bg-white/[0.02] transition-all group border-l-4 border-transparent hover:border-[#A42347]"
+                    >
+                      <div className="relative shrink-0">
+                        <Avatar className="h-14 w-14 border-2 border-white/10 ring-4 ring-black/20 group-hover:border-[#A42347]/50 transition-colors">
+                          <AvatarImage src={`${match.avatar}?id=${match.id}`} alt={match.username} data-ai-hint={match.dataAiHint} className="object-cover" />
+                          <AvatarFallback className="bg-white/10 text-white">
+                            {match.username.substring(0, 1).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        {match.unread && (
+                          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A42347] opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-4 w-4 bg-[#A42347]"></span>
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between mb-1">
+                          <h3 className="font-semibold text-white text-lg group-hover:text-[#A42347] transition-colors">
+                            {match.username}
+                          </h3>
+                          {match.lastMessageTimestamp && (
+                            <span className="text-xs text-white/30 font-medium">
+                              {new Date(match.lastMessageTimestamp.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <p className={`text-sm truncate pr-4 ${match.unread ? 'text-white font-medium' : 'text-white/40 group-hover:text-white/60'}`}>
+                            {match.lastMessage}
+                          </p>
+                          {match.unread && (
+                            <Badge variant="default" className="bg-[#A42347] hover:bg-[#A42347] h-5 px-1.5 text-[10px]">New</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ScrollArea>
         </CardContent>
       </Card>
     </div>
