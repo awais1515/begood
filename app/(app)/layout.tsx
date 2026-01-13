@@ -78,18 +78,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     const unsubscribe = onSnapshot(chatsQuery, (querySnapshot) => {
       let count = 0;
-      querySnapshot.forEach((doc) => {
-        const chatData = doc.data();
+
+      // Get current chat partner ID from pathname (if viewing a specific chat)
+      const currentChatPartnerId = pathname.startsWith('/messages/')
+        ? pathname.split('/messages/')[1]
+        : null;
+
+      querySnapshot.forEach((docSnap) => {
+        const chatData = docSnap.data();
         // Only count as unread if the last message exists and was sent by the other person
         if (chatData.lastMessage && chatData.lastMessageSenderId && chatData.lastMessageSenderId !== user.uid) {
-          count++;
+          // Don't count if user is currently viewing this chat
+          if (chatData.lastMessageSenderId !== currentChatPartnerId) {
+            count++;
+          }
         }
       });
       setUnreadCount(count);
     });
 
     return () => unsubscribe();
-  }, [user, firestore]);
+  }, [user, firestore, pathname]);
 
   // Track requests count (for Likes) - Real-time
   useEffect(() => {

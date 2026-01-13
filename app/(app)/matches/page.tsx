@@ -489,7 +489,7 @@ export default function MatchesPage() {
               {/* Profile Card */}
               <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20 mt-[-30px]">
                 {/* Image Section */}
-                <div className="relative w-full h-[calc(100vh-140px)]">
+                <div className="relative w-full h-[calc(100vh-180px)]">
                   <Image
                     src={currentProfile.mainImage || "https://placehold.co/600x800.png"}
                     alt={currentProfile.username}
@@ -512,10 +512,10 @@ export default function MatchesPage() {
                       </Link>
 
                       {/* Active Status */}
-                      {/* <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                        <span className="text-xs font-semibold text-green-400">Active</span>
-                      </div> */}
+                        <span className="text-xs font-semibold text-green-400">Online</span>
+                      </div>
 
                       {/* Age & Gender */}
                       <div className="text-white/90 font-medium text-sm mt-1">
@@ -550,11 +550,11 @@ export default function MatchesPage() {
                       )}
 
                       {/* Interest Tags */}
-                      <div className="flex flex-wrap gap-1.5 mt-3 pr-20">
+                      <div className="flex flex-wrap gap-0.5 mt-3 pr-24">
                         {currentProfile?.interests.slice(0, 8).map((interest, idx) => (
                           <span
                             key={idx}
-                            className="px-2.5 py-1 text-[10px] font-medium bg-[#792C3D] text-white/90 rounded-full border border-white/5 shadow-sm"
+                            className="px-2.5 py-1 text-[8px] font-medium bg-[#4F1D28] text-white/90 rounded-full border border-white/5 shadow-sm"
                           >
                             {interest}
                           </span>
