@@ -498,8 +498,9 @@ export default function MatchesPage() {
                     className="object-cover"
                     priority
                   />
-                  {/* Gradient overlay - Dark Pink at bottom, covering 70% height */}
-                  <div className="absolute bottom-0 left-0 right-0 h-[70%] bg-gradient-to-t from-[#4A1A25] via-[#792C3D]/95 to-transparent z-10" />
+
+                  {/* Noshaba Gradient overlay - Dark Pink at bottom, covering 60% height */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t from-[#4A1A25] via-[#792C3D]/95 to-transparent z-10" />
 
                   {/* Content overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
