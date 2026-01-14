@@ -498,15 +498,15 @@ export default function MatchesPage() {
                     className="object-cover"
                     priority
                   />
-                  {/* Gradient overlay - Pink at bottom */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#792C3D] via-[#792C3D]/60 to-transparent" />
+                  {/* Gradient overlay - Dark Pink at bottom, covering 70% height */}
+                  <div className="absolute bottom-0 left-0 right-0 h-[70%] bg-gradient-to-t from-[#4A1A25] via-[#792C3D]/95 to-transparent z-10" />
 
                   {/* Content overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col mb-2">
                       {/* Name */}
                       <Link href={`/profile/${currentProfile.id}`}>
-                        <h2 className="text-3xl font-bold text-white tracking-wide hover:underline drop-shadow-md">
+                        <h2 className="text-3xl font-[600px] text-white tracking-wide hover:underline drop-shadow-md">
                           {currentProfile.name || currentProfile.username}
                         </h2>
                       </Link>
@@ -514,7 +514,7 @@ export default function MatchesPage() {
                       {/* Active Status */}
                       <div className="flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                        <span className="text-xs font-semibold text-green-400">Online</span>
+                        <span className="text-xs font-normal text-green-400">Online</span>
                       </div>
 
                       {/* Age & Gender */}
@@ -540,7 +540,7 @@ export default function MatchesPage() {
                             return (
                               <span
                                 key={idx}
-                                className="px-3 py-1 text-xs font-semibold text-white rounded-[5px] border border-white/40 bg-white/5 backdrop-blur-sm"
+                                className="px-1.5 py-0.5 text-xs font-semibold text-white rounded-[5px] border border-white/40 bg-white/5 backdrop-blur-sm"
                               >
                                 {personaInfo?.label || formatDisplayValue(persona)}
                               </span>
