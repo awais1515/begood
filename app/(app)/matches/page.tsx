@@ -500,7 +500,7 @@ export default function MatchesPage() {
                   />
 
                   {/* Noshaba Gradient overlay - Dark Pink at bottom, covering 60% height */}
-                  <div className="absolute bottom-0 left-0 right-0 h-[60%] bg-gradient-to-t from-[#4A1A25] via-[#792C3D]/95 to-transparent z-10" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[50%] bg-gradient-to-t from-[#4A1A25] via-[#792C3D]/95 to-transparent z-10" />
 
                   {/* Content overlay */}
                   <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
@@ -552,7 +552,7 @@ export default function MatchesPage() {
 
                       {/* Interest Tags */}
                       <div className="flex flex-wrap gap-0.5 mt-3 pr-24">
-                        {currentProfile?.interests.slice(0, 8).map((interest, idx) => (
+                        {currentProfile?.interests.slice(0, 7).map((interest, idx) => (
                           <span
                             key={idx}
                             className="px-2.5 py-1 text-[8px] font-medium bg-[#4F1D28] text-white/90 rounded-full border border-white/5 shadow-sm"
