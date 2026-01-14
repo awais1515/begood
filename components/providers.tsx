@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { useState, useEffect } from 'react'
 import { CookieBanner } from '@/components/CookieBanner'
 import { getAnalytics, setAnalyticsCollectionEnabled } from "firebase/analytics";
-import { useFirebaseApp } from '@/firebase';
+import { useFirebaseApp } from '@/firebase/provider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [showBanner, setShowBanner] = useState(false);
@@ -13,21 +13,21 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-        const consent = localStorage.getItem('cookie_consent');
-        if (consent === null) {
-            setShowBanner(true);
-        } else if (consent === 'true' && app) {
-            const analytics = getAnalytics(app);
-            setAnalyticsCollectionEnabled(analytics, true);
-        }
+      const consent = localStorage.getItem('cookie_consent');
+      if (consent === null) {
+        setShowBanner(true);
+      } else if (consent === 'true' && app) {
+        const analytics = getAnalytics(app);
+        setAnalyticsCollectionEnabled(analytics, true);
+      }
     }
   }, [app]);
 
   const handleAccept = () => {
     setShowBanner(false);
     if (app) {
-        const analytics = getAnalytics(app);
-        setAnalyticsCollectionEnabled(analytics, true);
+      const analytics = getAnalytics(app);
+      setAnalyticsCollectionEnabled(analytics, true);
     }
   };
 

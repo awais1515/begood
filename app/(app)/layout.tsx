@@ -203,7 +203,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </span>
 
               {/* Badge - Right aligned */}
-              {item.badge && item.badge > 0 && (
+              {typeof item.badge === 'number' && item.badge > 0 && (
                 <div className="ml-auto">
                   <div className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold shadow-sm ${isActive(item.href)
                     ? 'bg-white text-[#A42347]'

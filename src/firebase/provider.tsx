@@ -93,5 +93,5 @@ export function useAuth(): {
     return () => unsubscribe();
   }, [auth]);
 
-  return { user, loading, auth, storage };
+  return { user, loading, auth: auth ?? null, storage: storage ?? null };
 }

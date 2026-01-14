@@ -9,7 +9,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { EditProfileForm } from '@/components/profile/EditProfileForm';
-import type { DetailedProfile } from '@/app/(app)/profile/me/page';
+import type { DetailedProfile } from '@/types/profile';
 
 type ProfileWithStatus = DetailedProfile & { isSuspended?: boolean };
 
@@ -38,7 +38,7 @@ export default function EditProfilePage() {
 
         if (userDocSnap.exists()) {
           const data = userDocSnap.data();
-           const age = data.birthYear ? (new Date().getFullYear() - parseInt(data.birthYear, 10)) : data.age || 0;
+          const age = data.birthYear ? (new Date().getFullYear() - parseInt(data.birthYear, 10)) : data.age || 0;
           setProfile({
             id: currentUser.uid,
             ...data,
@@ -79,7 +79,7 @@ export default function EditProfilePage() {
 
   if (!profile) {
     return (
-       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-4">
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-4">
         <FileQuestion className="mx-auto h-24 w-24 text-destructive opacity-70" />
         <h2 className="mt-8 text-3xl font-semibold font-serif">Profile Not Found</h2>
         <p className="mt-2 text-muted-foreground font-sans">
@@ -91,12 +91,12 @@ export default function EditProfilePage() {
       </div>
     );
   }
-  
+
   return (
     <div className="container mx-auto max-w-2xl py-8">
       <div className="flex items-center gap-4 mb-8">
         <Button onClick={() => router.back()} variant="ghost" size="icon">
-            <ArrowLeft className="h-6 w-6" />
+          <ArrowLeft className="h-6 w-6" />
         </Button>
         <h1 className="text-4xl font-bold font-serif">Edit Profile</h1>
       </div>

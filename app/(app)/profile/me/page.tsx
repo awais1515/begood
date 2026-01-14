@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Loader2, FileQuestion, Edit, UserCircle, Users, Heart, HelpCircle, BookOpen, Search, LogOut, Settings } from "lucide-react"; 
+import { Loader2, FileQuestion, Edit, UserCircle, Users, Heart, HelpCircle, BookOpen, Search, LogOut, Settings } from "lucide-react";
 import Link from 'next/link';
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { signOut } from 'firebase/auth';
@@ -16,23 +16,8 @@ import { doc, getDoc } from 'firebase/firestore';
 import { useAuth, useFirestore } from '@/firebase/provider';
 import { useToast } from '@/hooks/use-toast';
 import { formatDisplayValue } from '@/lib/utils';
-
-export type DetailedProfile = {
-  id: string;
-  username?: string;
-  age: number;
-  personas: string[];
-  lookingFor: string[];
-  purpose?: 'friendship' | 'relationship' | 'exploring';
-  gender: 'male' | 'female' | 'non-binary' | 'other' | 'prefer not to say';
-  country: string;
-  bio: string;
-  mainImage: string;
-  profileImages: string[];
-  dataAiHints: string[];
-  interests: string[];
-  favoriteBook?: string;
-};
+import type { DetailedProfile } from '@/types/profile';
+export type { DetailedProfile };
 
 const formatPurposeDisplay = (purpose?: 'friendship' | 'relationship' | 'exploring'): string => {
   if (!purpose) return '';
@@ -91,7 +76,7 @@ export default function MyProfilePage() {
         if (userDocSnap.exists()) {
           const data = userDocSnap.data();
           const age = data.birthYear ? (new Date().getFullYear() - parseInt(data.birthYear, 10)) : data.age || 0;
-          
+
           setProfile({
             id: currentUser.uid,
             ...data,
@@ -112,7 +97,7 @@ export default function MyProfilePage() {
         setLoading(false);
       }
     };
-    
+
     fetchProfile();
   }, [currentUser, toast, firestore]);
 
@@ -161,12 +146,12 @@ export default function MyProfilePage() {
           We couldn't load your profile. This might be a permission issue or your profile is not fully set up.
         </p>
         <div className="flex gap-4 mt-6">
-            <Link href="/signup" passHref legacyBehavior>
-                <Button variant="outline" asChild><a>Create Profile</a></Button>
-            </Link>
-            <Button onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" /> Log Out & Try Again
-            </Button>
+          <Link href="/signup" passHref legacyBehavior>
+            <Button variant="outline" asChild><a>Create Profile</a></Button>
+          </Link>
+          <Button onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" /> Log Out & Try Again
+          </Button>
         </div>
       </div>
     );
@@ -182,39 +167,39 @@ export default function MyProfilePage() {
         <Card className="shadow-xl rounded-xl overflow-hidden">
           <div className="relative h-72 md:h-96 w-full">
             <Carousel className="w-full h-full" opts={{ loop: allImages.length > 1 }}>
-                <CarouselContent>
-                    {allImages.map((imgSrc, index) => (
-                        <CarouselItem key={`${imgSrc}-${index}`} className="p-0">
-                            <button
-                                className="w-full h-full relative"
-                                onClick={() => handleImageClick(
-                                    imgSrc,
-                                    `My photo ${index + 1}`,
-                                    allDataAiHints[index] || "person lifestyle"
-                                )}
-                                aria-label={`View larger image of my photo ${index + 1}`}
-                            >
-                                <Image
-                                    src={imgSrc}
-                                    alt={`My photo ${index + 1}`}
-                                    fill
-                                    style={{ objectFit: 'cover', objectPosition: 'center' }}
-                                    priority={index === 0}
-                                    data-ai-hint={allDataAiHints[index] || "profile portrait"}
-                                />
-                                {index === 0 && (
-                                  <Badge variant="secondary" className="absolute top-2 left-2 z-10">Main</Badge>
-                                )}
-                            </button>
-                        </CarouselItem>
-                    ))}
-                </CarouselContent>
-                {allImages.length > 1 && (
-                    <>
-                        <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 text-white border-none hover:bg-black/60" />
-                        <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 text-white border-none hover:bg-black/60" />
-                    </>
-                )}
+              <CarouselContent>
+                {allImages.map((imgSrc, index) => (
+                  <CarouselItem key={`${imgSrc}-${index}`} className="p-0">
+                    <button
+                      className="w-full h-full relative"
+                      onClick={() => handleImageClick(
+                        imgSrc,
+                        `My photo ${index + 1}`,
+                        allDataAiHints[index] || "person lifestyle"
+                      )}
+                      aria-label={`View larger image of my photo ${index + 1}`}
+                    >
+                      <Image
+                        src={imgSrc}
+                        alt={`My photo ${index + 1}`}
+                        fill
+                        style={{ objectFit: 'cover', objectPosition: 'center' }}
+                        priority={index === 0}
+                        data-ai-hint={allDataAiHints[index] || "profile portrait"}
+                      />
+                      {index === 0 && (
+                        <Badge variant="secondary" className="absolute top-2 left-2 z-10">Main</Badge>
+                      )}
+                    </button>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              {allImages.length > 1 && (
+                <>
+                  <CarouselPrevious className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 text-white border-none hover:bg-black/60" />
+                  <CarouselNext className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 text-white border-none hover:bg-black/60" />
+                </>
+              )}
             </Carousel>
 
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
@@ -225,7 +210,7 @@ export default function MyProfilePage() {
                   <span className="sr-only">Edit Profile</span>
                 </Button>
               </Link>
-               <Link href="/settings">
+              <Link href="/settings">
                 <Button variant="outline" size="icon" className="bg-background/70 hover:bg-background/90 border-foreground/50 backdrop-blur-sm">
                   <Settings className="h-5 w-5" />
                   <span className="sr-only">Settings</span>
@@ -239,7 +224,7 @@ export default function MyProfilePage() {
               </p>
               {profile.purpose && (
                 <div className="flex items-center mt-1.5">
-                   {PurposeIcon && <PurposeIcon className="mr-2 h-5 w-5" />}
+                  {PurposeIcon && <PurposeIcon className="mr-2 h-5 w-5" />}
                   <p className="text-md font-sans">{formatPurposeDisplay(profile.purpose)}</p>
                 </div>
               )}
@@ -254,18 +239,18 @@ export default function MyProfilePage() {
               <p className="text-muted-foreground leading-relaxed whitespace-pre-line">{profile.bio}</p>
             </section>
 
-             <section>
-                <h2 className="text-2xl font-semibold font-serif mb-3 text-primary flex items-center gap-2">
-                    <Search className="h-6 w-6" /> Seeking
-                </h2>
-                <div className="flex flex-wrap gap-2 pl-8">
-                  {(profile.lookingFor && profile.lookingFor.length > 0) ? profile.lookingFor.map((item, index) => (
-                    <Badge key={index} variant="secondary" className="px-3 py-1 text-sm">
-                      {formatDisplayValue(item)}
-                    </Badge>
-                  )) : <p className="text-muted-foreground">Anyone</p>}
-                </div>
-              </section>
+            <section>
+              <h2 className="text-2xl font-semibold font-serif mb-3 text-primary flex items-center gap-2">
+                <Search className="h-6 w-6" /> Seeking
+              </h2>
+              <div className="flex flex-wrap gap-2 pl-8">
+                {(profile.lookingFor && profile.lookingFor.length > 0) ? profile.lookingFor.map((item, index) => (
+                  <Badge key={index} variant="secondary" className="px-3 py-1 text-sm">
+                    {formatDisplayValue(item)}
+                  </Badge>
+                )) : <p className="text-muted-foreground">Anyone</p>}
+              </div>
+            </section>
 
             {profile.interests && profile.interests.length > 0 && (
               <section>
@@ -283,7 +268,7 @@ export default function MyProfilePage() {
             {profile.favoriteBook && (
               <section>
                 <h2 className="text-2xl font-semibold font-serif mb-3 text-primary flex items-center gap-2">
-                    <BookOpen className="h-6 w-6" />Favorite Book
+                  <BookOpen className="h-6 w-6" />Favorite Book
                 </h2>
                 <p className="text-muted-foreground italic pl-8">{profile.favoriteBook}</p>
               </section>
@@ -303,7 +288,7 @@ export default function MyProfilePage() {
                 </Button>
               </div>
               <p className="text-sm text-muted-foreground mt-3">
-                  This is where you can edit your profile or log out.
+                This is where you can edit your profile or log out.
               </p>
             </section>
           </CardContent>

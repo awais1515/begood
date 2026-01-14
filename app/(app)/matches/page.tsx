@@ -30,6 +30,7 @@ interface UserProfile {
   gender?: string;
   birthYear?: number;
   personas?: string[];
+  interests?: string[];
   isSuspended?: boolean;
 }
 
@@ -552,7 +553,7 @@ export default function MatchesPage() {
 
                       {/* Interest Tags */}
                       <div className="flex flex-wrap gap-0.5 mt-3 pr-24">
-                        {currentProfile?.interests.slice(0, 7).map((interest, idx) => (
+                        {currentProfile?.interests?.slice(0, 7).map((interest, idx) => (
                           <span
                             key={idx}
                             className="px-2.5 py-1 text-[8px] font-medium bg-[#4F1D28] text-white/90 rounded-full border border-white/5 shadow-sm"
