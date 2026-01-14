@@ -15,7 +15,7 @@ import { Loader2, UploadCloud, Trash2, Users, Heart, HelpCircle, BookOpen, KeyRo
 import { getDownloadURL, ref, uploadBytes, deleteObject } from "firebase/storage";
 import { updatePassword } from "firebase/auth";
 import { doc, updateDoc } from "firebase/firestore";
-import { useAuth, useFirestore, useFirebaseApp } from "@/firebase/provider";
+import { useAuth, useFirestore } from "@/firebase/provider";
 import Image from 'next/image';
 import type { DetailedProfile } from '@/app/(app)/profile/me/page';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -29,39 +29,39 @@ import { FirebaseError } from "firebase/app";
 // Define custom SVG icons
 const HelmetIcon = ({ className }: { className?: string }) => (
     <svg
-      className={className}
-      viewBox="0 0 50 50"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="Helmet Icon"
+        className={className}
+        viewBox="0 0 50 50"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="Helmet Icon"
     >
-      <path d="M25 5C15.5817 5 8 12.5817 8 22V33C8 38.5228 12.4772 43 18 43H32C37.5228 43 42 38.5228 42 33V22C42 12.5817 34.4183 5 25 5Z" fill="hsl(var(--primary))" stroke="hsl(var(--border))" strokeWidth="1.5" />
-      <path d="M14 21C14 19 17 18 25 18C33 18 36 19 36 21V31C36 33.5 34.5 35 32 35H18C15.5 35 14 33.5 14 31V21Z" fill="hsl(var(--popover))" />
-      <rect x="18" y="26" width="2" height="7" rx="1" fill="hsl(var(--primary-foreground))" />
-      <rect x="24" y="26" width="2" height="7" rx="1" fill="hsl(var(--primary-foreground))" />
-      <rect x="30" y="26" width="2" height="7" rx="1" fill="hsl(var(--primary-foreground))" />
-      <path d="M19 12L22 15L25 12L28 15L31 12" stroke="hsl(var(--primary-foreground))" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round" />
+        <path d="M25 5C15.5817 5 8 12.5817 8 22V33C8 38.5228 12.4772 43 18 43H32C37.5228 43 42 38.5228 42 33V22C42 12.5817 34.4183 5 25 5Z" fill="hsl(var(--primary))" stroke="hsl(var(--border))" strokeWidth="1.5" />
+        <path d="M14 21C14 19 17 18 25 18C33 18 36 19 36 21V31C36 33.5 34.5 35 32 35H18C15.5 35 14 33.5 14 31V21Z" fill="hsl(var(--popover))" />
+        <rect x="18" y="26" width="2" height="7" rx="1" fill="hsl(var(--primary-foreground))" />
+        <rect x="24" y="26" width="2" height="7" rx="1" fill="hsl(var(--primary-foreground))" />
+        <rect x="30" y="26" width="2" height="7" rx="1" fill="hsl(var(--primary-foreground))" />
+        <path d="M19 12L22 15L25 12L28 15L31 12" stroke="hsl(var(--primary-foreground))" strokeOpacity="0.5" strokeWidth="1.5" strokeLinecap="round" />
     </svg>
-  );
-  
-  const BalaclavaIcon = ({ className }: { className?: string }) => (
+);
+
+const BalaclavaIcon = ({ className }: { className?: string }) => (
     <svg
-      className={className}
-      viewBox="0 0 40 52" // ViewBox: width 40, height 52
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="Balaclava Mask Icon"
+        className={className}
+        viewBox="0 0 40 52" // ViewBox: width 40, height 52
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-label="Balaclava Mask Icon"
     >
-      <path
-        d="M20 0C10.0589 0 2 8.05887 2 18C2 27.3333 5.6 35.2 10.4 40.4C10.7017 40.7695 10.8683 41.2134 10.8683 41.6667V49C10.8683 50.6569 12.2114 52 13.8683 52H26.1317C27.7886 52 29.1317 50.6569 29.1317 49V41.6667C29.1317 41.2134 29.2983 40.7695 29.6 40.4C34.4 35.2 38 27.3333 38 18C38 8.05887 29.9411 0 20 0Z"
-        fill="currentColor"
-      />
-      <ellipse cx="13" cy="18" rx="4.5" ry="2.5" fill="hsl(var(--background))" />
-      <line x1="10" y1="18" x2="16" y2="18" stroke="hsl(var(--foreground))" strokeOpacity="0.4" strokeWidth="0.7" />
-      <ellipse cx="27" cy="18" rx="4.5" ry="2.5" fill="hsl(var(--background))" />
-      <line x1="24" y1="18" x2="30" y2="18" stroke="hsl(var(--foreground))" strokeOpacity="0.4" strokeWidth="0.7" />
+        <path
+            d="M20 0C10.0589 0 2 8.05887 2 18C2 27.3333 5.6 35.2 10.4 40.4C10.7017 40.7695 10.8683 41.2134 10.8683 41.6667V49C10.8683 50.6569 12.2114 52 13.8683 52H26.1317C27.7886 52 29.1317 50.6569 29.1317 49V41.6667C29.1317 41.2134 29.2983 40.7695 29.6 40.4C34.4 35.2 38 27.3333 38 18C38 8.05887 29.9411 0 20 0Z"
+            fill="currentColor"
+        />
+        <ellipse cx="13" cy="18" rx="4.5" ry="2.5" fill="hsl(var(--background))" />
+        <line x1="10" y1="18" x2="16" y2="18" stroke="hsl(var(--foreground))" strokeOpacity="0.4" strokeWidth="0.7" />
+        <ellipse cx="27" cy="18" rx="4.5" ry="2.5" fill="hsl(var(--background))" />
+        <line x1="24" y1="18" x2="30" y2="18" stroke="hsl(var(--foreground))" strokeOpacity="0.4" strokeWidth="0.7" />
     </svg>
-  );
+);
 
 const personaOptions = [
     { id: "booklover", label: "Booklover", icon: BookOpen },
@@ -78,21 +78,21 @@ const purposeOptions = [
 const interestOptions = ["Cosplay", "Romance Books", "Fantasy Books", "Dark Romance Books", "Historical Books", "Sci-fi Books", "Fanfiction", "Horror Books", "Horror Movies", "Comedy", "Book Shopping", "Motorcycling", "Baking", "Football", "Volleyball", "Tennis", "Golf", "Basketball", "Rugby", "Swimming", "Pop", "Alter", "Rap", "Techno", "Heavy Metal", "Country Music", "Hip Hop Music", "Jazz", "R&B", "K-pop", "Punk Rock", "Rock", "Rave", "Metal", "Party", "Xbox", "Singing", "Tattoos", "Painting", "Drawing", "Blogging", "DIY", "Online Games", "Gardening", "Shopping", "Skating", "Ice Skating", "Bicycle", "Box", "Pilates", "Yoga", "Gymnastics", "Running", "Marathon", "Baseball", "Hiking", "Table Tennis", "Gym", "Weight Lifting", "Horse Riding", "Nature", "Car Trips", "Surf", "Picnic", "Fishing", "Museum", "Festival", "Karaoke", "Exhibition", "Concerts", "Bowling", "Art Galleries", "Wine", "Coctails", "Fast Food", "Vegan", "Vegetarian", "Foodie", "Reading", "Traveling", "Cooking", "Gaming", "Movies", "Music", "Sports", "Art", "Photography", "Coding"];
 
 const editProfileFormSchema = z.object({
-  bio: z.string().max(300, { message: "Bio cannot exceed 300 characters." }).optional(),
-  interests: z.array(z.string()).optional(),
-  favoriteBook: z.string().optional(),
-  profileImages: z.array(z.string()).min(1, "Please upload at least one photo.").max(5, "You can upload a maximum of 5 photos."),
-  personas: z.array(z.string()).refine((value) => value && value.length > 0, {
-    message: "You have to select at least one persona.",
-  }),
-  lookingFor: z.array(z.string()).refine((value) => value && value.length > 0, {
-    message: "You have to select at least one type to look for.",
-  }),
-  purpose: z.string({
-    required_error: "You need to select your purpose.",
-  }),
-  newPassword: z.string().min(6, "Password must be at least 6 characters.").optional().or(z.literal('')),
-  confirmNewPassword: z.string().optional(),
+    bio: z.string().max(300, { message: "Bio cannot exceed 300 characters." }).optional(),
+    interests: z.array(z.string()).optional(),
+    favoriteBook: z.string().optional(),
+    profileImages: z.array(z.string()).min(1, "Please upload at least one photo.").max(5, "You can upload a maximum of 5 photos."),
+    personas: z.array(z.string()).refine((value) => value && value.length > 0, {
+        message: "You have to select at least one persona.",
+    }),
+    lookingFor: z.array(z.string()).refine((value) => value && value.length > 0, {
+        message: "You have to select at least one type to look for.",
+    }),
+    purpose: z.string({
+        required_error: "You need to select your purpose.",
+    }),
+    newPassword: z.string().min(6, "Password must be at least 6 characters.").optional().or(z.literal('')),
+    confirmNewPassword: z.string().optional(),
 }).refine(data => {
     if (data.newPassword && data.newPassword !== data.confirmNewPassword) {
         return false;
@@ -114,13 +114,12 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
     const router = useRouter();
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const { user: currentUser } = useAuth();
+    const { user: currentUser, storage } = useAuth();
     const firestore = useFirestore();
-    const { storage } = useFirebaseApp();
-    
+
     const [images, setImages] = useState<{ url: string; file?: File; }[]>([]);
     const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
-    
+
     const form = useForm<EditProfileFormValues>({
         resolver: zodResolver(editProfileFormSchema),
         defaultValues: {
@@ -159,7 +158,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
             file,
             url: URL.createObjectURL(file)
         }));
-        
+
         const allImages = [...images, ...newImageObjects];
         setImages(allImages);
         form.setValue("profileImages", allImages.map(img => img.url), { shouldValidate: true });
@@ -170,9 +169,9 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
             toast({ title: "Cannot remove", description: "You must have at least one photo.", variant: "destructive" });
             return;
         }
-        
+
         const imageToDelete = images[indexToDelete];
-        
+
         if (imageToDelete && !imageToDelete.file) {
             setImagesToDelete(prev => [...prev, imageToDelete.url]);
         } else if (imageToDelete) {
@@ -186,7 +185,11 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
 
     async function onSubmit(data: EditProfileFormValues) {
         setIsSubmitting(true);
+        console.log("DEBUG - currentUser:", currentUser);
+        console.log("DEBUG - firestore:", firestore);
+        console.log("DEBUG - storage:", storage);
         if (!currentUser || !firestore || !storage) {
+            console.log("DEBUG - Missing:", { currentUser: !currentUser, firestore: !firestore, storage: !storage });
             toast({ title: "Not Authenticated", description: "You must be logged in to update your profile.", variant: "destructive" });
             setIsSubmitting(false);
             return;
@@ -220,12 +223,12 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                 return deleteObject(imageRef).catch(err => console.warn("Failed to delete image, it might not exist:", err));
             });
             await Promise.all(deletePromises);
-            
+
             const newImagesToUpload = images.filter(img => !!img.file);
             const existingImageUrls = images.filter(img => !img.file).map(img => img.url);
 
             const uploadPromises = newImagesToUpload.map(async ({ file }) => {
-                if(!file) return "";
+                if (!file) return "";
                 const storageRef = ref(storage, `users/${currentUser.uid}/images/${Date.now()}-${file.name}`);
                 await uploadBytes(storageRef, file);
                 return getDownloadURL(storageRef);
@@ -234,13 +237,13 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
 
             const allFinalImageUrls = [...existingImageUrls, ...newUploadedUrls];
             if (allFinalImageUrls.length === 0) {
-                 toast({ title: "No Photos", description: "You must have at least one profile photo.", variant: "destructive" });
-                 setIsSubmitting(false);
-                 return;
+                toast({ title: "No Photos", description: "You must have at least one profile photo.", variant: "destructive" });
+                setIsSubmitting(false);
+                return;
             }
 
             const userDocRef = doc(firestore, "users", currentUser.uid);
-            
+
             const updatedProfileData = {
                 bio: data.bio,
                 interests: data.interests || [],
@@ -265,7 +268,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
             setIsSubmitting(false);
         }
     }
-    
+
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
@@ -300,8 +303,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                                                                 checked={field.value?.includes(item.id)}
                                                                 onCheckedChange={(checked) => {
                                                                     return checked
-                                                                    ? field.onChange([...(field.value || []), item.id])
-                                                                    : field.onChange(field.value?.filter((value) => value !== item.id));
+                                                                        ? field.onChange([...(field.value || []), item.id])
+                                                                        : field.onChange(field.value?.filter((value) => value !== item.id));
                                                                 }}
                                                             />
                                                         </FormControl>
@@ -344,8 +347,8 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                                                                 checked={field.value?.includes(item.id)}
                                                                 onCheckedChange={(checked) => {
                                                                     return checked
-                                                                    ? field.onChange([...(field.value || []), item.id])
-                                                                    : field.onChange(field.value?.filter((value) => value !== item.id));
+                                                                        ? field.onChange([...(field.value || []), item.id])
+                                                                        : field.onChange(field.value?.filter((value) => value !== item.id));
                                                                 }}
                                                             />
                                                         </FormControl>
@@ -362,7 +365,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                                 </FormItem>
                             )}
                         />
-                        
+
                         <FormField
                             control={form.control}
                             name="purpose"
@@ -371,21 +374,21 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                                     <FormLabel className="text-primary text-base">I'm hoping to find</FormLabel>
                                     <FormControl>
                                         <RadioGroup
-                                        onValueChange={field.onChange}
-                                        defaultValue={field.value}
-                                        className="grid grid-cols-1 sm:grid-cols-3 gap-4"
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                            className="grid grid-cols-1 sm:grid-cols-3 gap-4"
                                         >
-                                        {purposeOptions.map(option => (
-                                            <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
-                                                <FormControl>
-                                                    <RadioGroupItem value={option.value} />
-                                                </FormControl>
-                                                <FormLabel className="font-normal flex items-center gap-2">
-                                                    <option.icon className="h-5 w-5"/>
-                                                    {option.label}
-                                                </FormLabel>
-                                            </FormItem>
-                                        ))}
+                                            {purposeOptions.map(option => (
+                                                <FormItem key={option.value} className="flex items-center space-x-3 space-y-0">
+                                                    <FormControl>
+                                                        <RadioGroupItem value={option.value} />
+                                                    </FormControl>
+                                                    <FormLabel className="font-normal flex items-center gap-2">
+                                                        <option.icon className="h-5 w-5" />
+                                                        {option.label}
+                                                    </FormLabel>
+                                                </FormItem>
+                                            ))}
                                         </RadioGroup>
                                     </FormControl>
                                     <FormMessage />
@@ -442,7 +445,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                                 </FormItem>
                             )}
                         />
-                        
+
                         <FormField control={form.control} name="favoriteBook" render={({ field }) => (
                             <FormItem>
                                 <FormLabel className="text-primary">Favorite Book</FormLabel>
@@ -484,11 +487,11 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
 
                 <Card className="shadow-lg font-sans rounded-xl">
                     <CardHeader>
-                        <CardTitle className="flex items-center gap-2"><KeyRound/> Account Security</CardTitle>
+                        <CardTitle className="flex items-center gap-2"><KeyRound /> Account Security</CardTitle>
                         <CardDescription>Update your password here. Leave blank to keep your current password.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField control={form.control} name="newPassword" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-primary">New Password</FormLabel>
@@ -503,7 +506,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
                                     <FormMessage />
                                 </FormItem>
                             )} />
-                         </div>
+                        </div>
                     </CardContent>
                 </Card>
 

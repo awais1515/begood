@@ -86,10 +86,19 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
       querySnapshot.forEach((docSnap) => {
         const chatData = docSnap.data();
+        const chatId = docSnap.id;
+
         // Only count as unread if the last message exists and was sent by the other person
         if (chatData.lastMessage && chatData.lastMessageSenderId && chatData.lastMessageSenderId !== user.uid) {
           // Don't count if user is currently viewing this chat
-          if (chatData.lastMessageSenderId !== currentChatPartnerId) {
+          // Check if the current chat partner is part of this chat OR if chatId matches the URL partner
+          const isViewingThisChat = currentChatPartnerId && (
+            currentChatPartnerId === chatData.lastMessageSenderId ||
+            chatId === currentChatPartnerId ||
+            chatId.includes(currentChatPartnerId)
+          );
+
+          if (!isViewingThisChat) {
             count++;
           }
         }

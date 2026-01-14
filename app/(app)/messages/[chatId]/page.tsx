@@ -198,6 +198,9 @@ export default function ChatPage() {
         const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
           if (!chatError) setChatError(null);
 
+          // Mark chat as read whenever new messages arrive while user is viewing
+          markChatAsRead();
+
           const fetchedMessages = snapshot.docs.map(docSnap => {
             const data = docSnap.data();
             return {
