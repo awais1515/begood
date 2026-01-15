@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <main className="min-h-screen flex items-center justify-center relative p-5 w-full">
+        <main className="min-h-screen flex items-center justify-center relative p-5 w-full" style={{ fontFamily: 'var(--font-montserrat)' }}>
             {/* Background Image */}
             <div
                 className="fixed inset-0 bg-cover bg-center bg-no-repeat z-0 w-full h-full"

@@ -90,7 +90,7 @@ export default function LoginPage() {
 
   // Login Form Screen
   return (
-    <main className="min-h-screen flex items-center justify-center relative p-5 w-full">
+    <main className="min-h-screen flex items-center justify-center relative p-5 w-full" style={{ fontFamily: 'var(--font-montserrat)' }}>
       {/* Background Image */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat z-0 w-full h-full"
@@ -183,7 +183,7 @@ export default function LoginPage() {
           </form>
 
           {/* Sign Up Link */}
-          <p className="text-center text-white text-[13px] mt-6">
+          <p className="text-center text-white text-[12px] mt-6">
             New to our app? Start your journey today{" "}
             <Link href="/signup" className="text-[#E296A3] font-semibold hover:underline">Sign Up</Link>
           </p>
