@@ -7,7 +7,7 @@ const firebaseConfig: FirebaseOptions = {
   apiKey: "AIzaSyAqpvAtR5Gab7qawTThyR9afbHyFqT9nlM",
   authDomain: "begood-u4gke.firebaseapp.com",
   projectId: "begood-u4gke",
-  storageBucket: "begood-u4gke.appspot.com",
+  storageBucket: "begood-u4gke.firebasestorage.app",
   messagingSenderId: "999854436110",
   appId: "1:999854436110:web:e29cce9eb9c7abc743b15f",
 };
