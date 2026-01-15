@@ -9,6 +9,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Button } from "react-day-picker";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -76,7 +77,7 @@ export default function LoginPage() {
         {/* Center Content */}
         <div className="flex flex-col items-center gap-4 z-10 animate-in fade-in zoom-in-95 duration-1000">
           <Image src="/Logo.svg" alt="BeGood" width={320} height={140} priority />
-         
+
         </div>
 
         {/* Bottom Left Flowers */}
@@ -103,7 +104,7 @@ export default function LoginPage() {
 
         {/* Left Side - Welcome */}
         <div className="flex-[0.9] flex flex-col items-center justify-center py-12 px-9 gap-2">
-          <h1 className="text-white text-3xl font-semibold mb-4 ">Welcome</h1>
+          <h1 className="text-white text-3xl font-semibold mb-4" style={{ fontFamily: 'var(--font-montserrat)' }}>Welcome</h1>
           <Image src="/Logo.svg" alt="BeGood" width={180} height={78} priority />
         </div>
 
@@ -112,7 +113,7 @@ export default function LoginPage() {
 
         {/* Right Side - Login Form */}
         <div className="flex-[1.1] p-10 px-11">
-          <h2 className="text-white text-[28px] font-medium mb-8 text-center tracking-wide">Log In</h2>
+          <h2 className="text-white text-[28px] font-medium mb-8 text-center tracking-wide" style={{ fontFamily: 'var(--font-montserrat)' }}>Log In</h2>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             {/* Email Field */}
@@ -159,9 +160,14 @@ export default function LoginPage() {
             </div>
 
             {/* Forgot Password */}
-            <Link href="/forgot-password" className="text-[#E296A3] text-[13px] opacity-80 hover:opacity-100 -mt-1">
-              Forgot Password
-            </Link>
+            <div className="flex justify-start ">
+
+              <button>
+                <Link href="/forgot-password" className="text-[#E296A3] text-[13px] opacity-80 hover:opacity-100 -mt-1">
+                  Forgot Password
+                </Link>
+              </button>
+            </div>
 
             {/* Error Message */}
             {error && <p className="text-red-400 text-xs text-center">{error}</p>}
