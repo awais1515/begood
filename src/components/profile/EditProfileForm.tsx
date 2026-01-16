@@ -259,7 +259,7 @@ export function EditProfileForm({ profile }: EditProfileFormProps) {
             router.refresh();
         } catch (error: any) {
             console.error("Profile update error:", error);
-            toast({ title: "Update Error", description: error.message || "There was a problem updating your profile.", variant: "destructive" });
+            toast({ title: "Update Failed", description: "There was a problem updating your profile. Please try again.", variant: "destructive" });
         } finally {
             setIsSubmitting(false);
         }

@@ -292,7 +292,7 @@ function SignUpForm() {
             } catch (error: any) {
                 console.error("Profile submission error:", error);
                 let title = "Submission Error";
-                let description = error.message || "There was a problem creating your profile.";
+                let description = "There was a problem creating your profile. Please try again.";
 
                 if (error instanceof FirebaseError) {
                     switch (error.code) {
