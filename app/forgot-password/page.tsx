@@ -39,7 +39,7 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <main className="min-h-screen flex items-center justify-center relative p-5 w-full" style={{ fontFamily: 'var(--font-montserrat)' }}>
+        <main className="min-h-screen flex items-center justify-center relative p-4 md:p-5 w-full" style={{ fontFamily: 'var(--font-montserrat)' }}>
             {/* Background Image */}
             <div
                 className="fixed inset-0 bg-cover bg-center bg-no-repeat z-0 w-full h-full"
@@ -49,19 +49,19 @@ export default function ForgotPasswordPage() {
             </div>
 
             {/* Container */}
-            <div className="flex flex-col items-center bg-[#140c0e]/75 rounded-2xl overflow-hidden max-w-[450px] w-full shadow-2xl backdrop-blur-xl relative z-10 border border-[#E296A3]/10 p-10">
+            <div className="flex flex-col items-center bg-[#140c0e]/75 rounded-2xl overflow-hidden max-w-[450px] w-full shadow-2xl backdrop-blur-xl relative z-10 border border-[#E296A3]/10 p-6 sm:p-8 md:p-10">
 
                 {/* Back Button */}
                 <Link
                     href="/login"
-                    className="absolute top-6 left-6 text-[#E296A3]/70 hover:text-[#E296A3] transition-colors flex items-center gap-2"
+                    className="absolute top-4 left-4 sm:top-6 sm:left-6 text-[#E296A3]/70 hover:text-[#E296A3] transition-colors flex items-center gap-1.5 sm:gap-2"
                 >
-                    <ArrowLeft size={20} />
-                    <span className="text-sm">Back to Login</span>
+                    <ArrowLeft size={18} className="sm:w-5 sm:h-5" />
+                    <span className="text-xs sm:text-sm">Back to Login</span>
                 </Link>
 
                 {/* Logo */}
-                <Image src="/Logo.svg" alt="BeGood" width={140} height={60} priority className="mb-6 mt-6" />
+                <Image src="/Logo.svg" alt="BeGood" width={140} height={60} priority className="mb-6 mt-6 w-28 sm:w-[140px] h-auto" />
 
                 {success ? (
                     // Success Message

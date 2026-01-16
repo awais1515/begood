@@ -160,29 +160,29 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 h-full">
-      <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Messages</h1>
-      <p className="text-muted-foreground mb-8">Start a conversation with your matches</p>
+    <div className="max-w-5xl mx-auto p-4 md:p-6 h-full">
+      <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-2">Messages</h1>
+      <p className="text-muted-foreground mb-6 md:mb-8 text-sm md:text-base">Start a conversation with your matches</p>
 
-      <Card className="bg-[#1a1a1a] border-white/5 text-white shadow-xl rounded-3xl overflow-hidden h-[calc(100vh-200px)] flex flex-col">
-        <CardHeader className="border-b border-white/5 px-6 py-5 shrink-0">
+      <Card className="bg-[#1a1a1a] border-white/5 text-white shadow-xl rounded-2xl md:rounded-3xl overflow-hidden h-[calc(100vh-260px)] md:h-[calc(100vh-200px)] flex flex-col">
+        <CardHeader className="border-b border-white/5 px-4 md:px-6 py-3 md:py-5 shrink-0">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl font-semibold text-white tracking-wide">Your Matches</CardTitle>
-              <CardDescription className="text-white/40 mt-1">
+              <CardTitle className="text-base md:text-xl font-semibold text-white tracking-wide">Your Matches</CardTitle>
+              <CardDescription className="text-white/40 mt-0.5 md:mt-1 text-xs md:text-sm">
                 Recent conversations
               </CardDescription>
             </div>
-            <Badge variant="secondary" className="bg-[#A42347]/10 text-[#A42347] hover:bg-[#A42347]/20 border-0 px-3 py-1">
+            <Badge variant="secondary" className="bg-[#A42347]/10 text-[#A42347] hover:bg-[#A42347]/20 border-0 px-2 md:px-3 py-0.5 md:py-1 text-xs">
               {filteredMatches.length} Matches
             </Badge>
           </div>
 
-          <div className="relative mt-6">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <div className="relative mt-3 md:mt-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <Input
               placeholder="Search matches..."
-              className="pl-10 bg-[#121212] border-white/5 text-white placeholder:text-white/30 focus-visible:ring-[#A42347]/50 h-11 rounded-xl"
+              className="pl-9 bg-[#121212] border-white/5 text-white placeholder:text-white/30 focus-visible:ring-[#A42347]/50 h-9 md:h-11 rounded-lg md:rounded-xl text-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -208,26 +208,26 @@ export default function MessagesPage() {
                   <li key={match.id}>
                     <Link
                       href={`/messages/${match.id}`}
-                      className="flex items-center gap-5 p-4 sm:px-6 sm:py-5 hover:bg-white/[0.02] transition-all group border-l-4 border-transparent hover:border-[#A42347]"
+                      className="flex items-center gap-3 md:gap-5 p-3 md:p-4 sm:px-6 sm:py-5 hover:bg-white/[0.02] transition-all group border-l-4 border-transparent hover:border-[#A42347]"
                     >
                       <div className="relative shrink-0">
-                        <Avatar className="h-14 w-14 border-2 border-white/10 ring-4 ring-black/20 group-hover:border-[#A42347]/50 transition-colors">
+                        <Avatar className="h-11 w-11 md:h-14 md:w-14 border-2 border-white/10 ring-2 md:ring-4 ring-black/20 group-hover:border-[#A42347]/50 transition-colors">
                           <AvatarImage src={`${match.avatar}?id=${match.id}`} alt={match.username} data-ai-hint={match.dataAiHint} className="object-cover" />
-                          <AvatarFallback className="bg-white/10 text-white">
+                          <AvatarFallback className="bg-white/10 text-white text-sm md:text-base">
                             {match.username.substring(0, 1).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         {match.unread && (
-                          <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                          <span className="absolute -top-1 -right-1 flex h-3 w-3 md:h-4 md:w-4">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#A42347] opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-4 w-4 bg-[#A42347]"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 md:h-4 md:w-4 bg-[#A42347]"></span>
                           </span>
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-semibold text-white text-lg group-hover:text-[#A42347] transition-colors">
+                        <div className="flex items-center justify-between mb-0.5 md:mb-1">
+                          <h3 className="font-semibold text-white text-sm md:text-lg group-hover:text-[#A42347] transition-colors truncate">
                             {match.username}
                           </h3>
                           {match.lastMessageTimestamp && (
@@ -237,12 +237,12 @@ export default function MessagesPage() {
                           )}
                         </div>
 
-                        <div className="flex items-center justify-between">
-                          <p className={`text-sm truncate pr-4 ${match.unread ? 'text-white font-medium' : 'text-white/40 group-hover:text-white/60'}`}>
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-xs md:text-sm truncate ${match.unread ? 'text-white font-medium' : 'text-white/40 group-hover:text-white/60'}`}>
                             {match.lastMessage}
                           </p>
                           {match.unread && (
-                            <Badge variant="default" className="bg-[#A42347] hover:bg-[#A42347] h-5 px-1.5 text-[10px]">New</Badge>
+                            <Badge variant="default" className="bg-[#A42347] hover:bg-[#A42347] h-4 md:h-5 px-1 md:px-1.5 text-[9px] md:text-[10px] shrink-0">New</Badge>
                           )}
                         </div>
                       </div>

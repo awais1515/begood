@@ -163,9 +163,9 @@ export default function MyProfilePage() {
 
   return (
     <>
-      <div className="container mx-auto max-w-4xl py-8 px-4 font-sans">
+      <div className="container mx-auto max-w-4xl py-4 md:py-8 px-2 md:px-4 font-sans">
         <Card className="shadow-xl rounded-xl overflow-hidden">
-          <div className="relative h-72 md:h-96 w-full">
+          <div className="relative h-56 sm:h-72 md:h-96 w-full">
             <Carousel className="w-full h-full" opts={{ loop: allImages.length > 1 }}>
               <CarouselContent>
                 {allImages.map((imgSrc, index) => (

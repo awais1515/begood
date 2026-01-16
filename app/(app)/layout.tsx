@@ -170,8 +170,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen w-full bg-background font-sans">
-      {/* Sidebar - Increased width to w-64 (16rem) */}
-      <aside className="fixed left-0 top-0 h-screen w-64 flex flex-col border-r border-white/5 bg-gradient-to-t from-[#792C3D] via-[#1B1B1B] via-50% to-[#1B1B1B] z-50 shadow-xl">
+      {/* Sidebar - Hidden on mobile, visible on md+ */}
+      <aside className="hidden md:flex fixed left-0 top-0 h-screen w-64 flex-col border-r border-white/5 bg-gradient-to-t from-[#792C3D] via-[#1B1B1B] via-50% to-[#1B1B1B] z-50 shadow-xl">
         {/* Logo - Using SVG from public folder */}
         <div className="flex flex-col items-center pt-8 pb-10">
           <div className="relative w-32 h-16">
@@ -229,15 +229,70 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Content - Adjusted margin to ml-64 */}
-      <main className="flex-1 ml-64 flex flex-col bg-[#121212]">
-        {/* Top Header/Navbar */}
-        <header className="sticky top-0 z-40 flex items-center justify-between px-8 py-3 bg-[#121212]/95 backdrop-blur-sm border-b border-white/5">
-          {/* Page Title */}
-          <h1 className="text-2xl font-bold text-white tracking-tight">{getPageTitle()}</h1>
+      {/* Mobile Bottom Navigation - Visible only on mobile */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-[#1B1B1B] to-[#1B1B1B]/95 border-t border-white/10 backdrop-blur-lg safe-area-pb">
+        <div className="flex items-center justify-around py-2 px-2">
+          {navItems.slice(0, 3).map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${isActive(item.href)
+                ? 'text-[#C64D68]'
+                : 'text-white/50 hover:text-white/80'
+                }`}
+            >
+              <div className="relative">
+                <item.icon className={`h-6 w-6 ${isActive(item.href) ? 'text-[#C64D68]' : ''}`} />
+                {/* Badge for mobile */}
+                {typeof item.badge === 'number' && item.badge > 0 && (
+                  <div className="absolute -top-1 -right-1 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#A42347] px-1 text-[9px] font-bold text-white">
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </div>
+                )}
+              </div>
+              <span className={`text-[10px] mt-1 font-medium ${isActive(item.href) ? 'text-[#C64D68]' : ''}`}>
+                {item.title}
+              </span>
+            </Link>
+          ))}
+          {/* More menu / Profile on mobile */}
+          <Link
+            href="/profile/me"
+            className={`relative flex flex-col items-center justify-center py-2 px-3 rounded-xl transition-all duration-200 ${isActive('/profile')
+              ? 'text-[#C64D68]'
+              : 'text-white/50 hover:text-white/80'
+              }`}
+          >
+            <div className="relative h-6 w-6 rounded-full overflow-hidden bg-muted border border-[#A42347]/30">
+              {userProfile?.photoURL ? (
+                <Image
+                  src={userProfile.photoURL}
+                  alt="Profile"
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full w-full bg-[#A42347]/10">
+                  <User className="h-3 w-3 text-[#A42347]" />
+                </div>
+              )}
+            </div>
+            <span className={`text-[10px] mt-1 font-medium ${isActive('/profile') ? 'text-[#C64D68]' : ''}`}>
+              Profile
+            </span>
+          </Link>
+        </div>
+      </nav>
 
-          {/* Right Side - User Profile */}
-          <Link href="/profile/me" className="flex items-center gap-4 hover:bg-white/5 px-3 py-2 rounded-xl transition-all">
+      {/* Main Content - No margin on mobile, ml-64 on md+ */}
+      <main className="flex-1 ml-0 md:ml-64 flex flex-col bg-[#121212] pb-20 md:pb-0">
+        {/* Top Header/Navbar */}
+        <header className="sticky top-0 z-40 flex items-center justify-between px-4 md:px-8 py-3 bg-[#121212]/95 backdrop-blur-sm border-b border-white/5">
+          {/* Page Title */}
+          <h1 className="text-xl md:text-2xl font-bold text-white tracking-tight">{getPageTitle()}</h1>
+
+          {/* Right Side - User Profile (hidden on mobile as it's in bottom nav) */}
+          <Link href="/profile/me" className="hidden md:flex items-center gap-4 hover:bg-white/5 px-3 py-2 rounded-xl transition-all">
             <span className="text-sm font-semibold text-white/90">{userProfile?.displayName || 'User'}</span>
             <div className="relative h-11 w-11 rounded-full overflow-hidden bg-muted border-2 border-[#A42347]/30 ring-2 ring-[#A42347]/10">
               {userProfile?.photoURL ? (

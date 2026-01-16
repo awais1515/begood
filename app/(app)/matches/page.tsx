@@ -455,7 +455,7 @@ export default function MatchesPage() {
 
       <div className="flex flex-col flex-1 h-full">
         {/* Action Buttons - Right aligned below header */}
-        <div className="flex justify-end px-6 py-1">
+        <div className="flex justify-end px-4 md:px-6 py-1">
           <div className="flex items-center gap-2">
             <button
               onClick={() => fetchData()}
@@ -475,7 +475,7 @@ export default function MatchesPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex items-center justify-center px-6 pb-2">
+        <div className="flex-1 flex items-center justify-center px-4 md:px-6 pb-2">
           {errorState.hasError ? (
             <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg max-w-sm w-full">
               <AlertTriangle className="mx-auto h-12 w-12" />
@@ -486,11 +486,11 @@ export default function MatchesPage() {
               </Button>
             </div>
           ) : currentProfile ? (
-            <div className="relative w-full max-w-sm">
+            <div className="relative w-full max-w-sm mx-auto">
               {/* Profile Card */}
-              <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20 mt-[-30px]">
+              <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20 mt-0 md:mt-[-30px]">
                 {/* Image Section */}
-                <div className="relative w-full h-[calc(100vh-180px)]">
+                <div className="relative w-full h-[calc(100vh-220px)] md:h-[calc(100vh-180px)]">
                   <Image
                     src={currentProfile.mainImage || "https://placehold.co/600x800.png"}
                     alt={currentProfile.username}
