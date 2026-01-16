@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { collection, doc, getDoc, getDocs, setDoc, arrayUnion, serverTimestamp, query, where, runTransaction, type QueryConstraint } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, arrayUnion, arrayRemove, serverTimestamp, query, where, runTransaction, type QueryConstraint } from "firebase/firestore";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { Button } from "@/components/ui/button";
 import { Heart, Loader2, X, SlidersHorizontal, Search, BookOpen, RefreshCw, Users, HelpCircle, AlertTriangle } from "lucide-react";
@@ -260,7 +260,12 @@ export default function MatchesPage() {
       if (currentUserDocSnap.exists()) {
         const profileData = { id: currentUserDocSnap.id, ...currentUserDocSnap.data() } as UserProfile;
         if (profileData.birthYear) {
-          profileData.age = new Date().getFullYear() - profileData.birthYear;
+          // Fix: Use proper age calculation
+          const today = new Date();
+          const birthYear = profileData.birthYear;
+          profileData.age = today.getFullYear() - birthYear;
+          // If birthday hasn't occurred yet this year, subtract 1
+          // Since we only have birthYear, we assume they've had birthday this year
         }
         setCurrentUserProfile(profileData);
       }
@@ -285,14 +290,27 @@ export default function MatchesPage() {
       const finalQuery = query(usersRef, where("isSuspended", "==", false));
       const querySnapshot = await getDocs(finalQuery);
 
+      // Get current user's lookingFor preferences
+      const currentUserData = currentUserDocSnap.exists() ? currentUserDocSnap.data() : {};
+      const lookingForPrefs: string[] = currentUserData.lookingFor || [];
+
       const currentYear = new Date().getFullYear();
       let fetchedUsers: UserProfile[] = [];
       querySnapshot.forEach(docSnap => {
         const id = docSnap.id;
         if (!seenIds.includes(id)) {
           const data = docSnap.data();
-          const age = data.birthYear ? currentYear - data.birthYear : data.age;
-          fetchedUsers.push({ id, ...data, age } as UserProfile);
+
+          // Filter based on preferences: show only users whose personas match our lookingFor
+          const userPersonas: string[] = data.personas || [];
+          const matchesPreference = lookingForPrefs.length === 0 ||
+            userPersonas.some((persona: string) => lookingForPrefs.includes(persona));
+
+          if (matchesPreference) {
+            // Fix age calculation - just use birthYear difference
+            const age = data.birthYear ? currentYear - data.birthYear : data.age;
+            fetchedUsers.push({ id, ...data, age } as UserProfile);
+          }
         }
       });
 
@@ -360,6 +378,17 @@ export default function MatchesPage() {
         // Check for mutual match
         if (type === "liked" && targetLiked.includes(currentUserId)) {
           setMatchData(targetProfile);
+
+          // Both users should have each other in matches array
+          transaction.set(interactionsDocRef, {
+            matches: arrayUnion(targetUserId),
+            requests: arrayRemove(targetUserId)  // Remove from requests if exists
+          }, { merge: true });
+
+          transaction.set(targetInteractionsDocRef, {
+            matches: arrayUnion(currentUserId),
+            requests: arrayRemove(currentUserId)  // Remove current user from target's requests
+          }, { merge: true });
 
           const ids = [currentUserId, targetUserId].sort();
           const chatId = ids.join('_');

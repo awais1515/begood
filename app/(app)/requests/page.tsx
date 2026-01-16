@@ -75,10 +75,15 @@ export default function RequestsPage() {
                 console.log('📝 Interactions data:', interactionsData);
 
                 const requestIds = interactionsData.requests || [];
+                const matchedIds = interactionsData.matches || [];  // Get matched users
                 console.log('👥 Request IDs:', requestIds);
+                console.log('👥 Matched IDs:', matchedIds);
 
-                if (requestIds.length === 0) {
-                    console.log('📭 No requests found');
+                // Filter out users who are already matched
+                const filteredRequestIds = requestIds.filter((id: string) => !matchedIds.includes(id));
+
+                if (filteredRequestIds.length === 0) {
+                    console.log('📭 No requests found (after filtering matched users)');
                     setRequests([]);
                     setLoading(false);
                     return;
@@ -86,7 +91,7 @@ export default function RequestsPage() {
 
                 // Fetch user details for each request
                 console.log('🔄 Fetching user details for each request...');
-                const requestPromises = requestIds.map(async (userId: string) => {
+                const requestPromises = filteredRequestIds.map(async (userId: string) => {
                     const userDocRef = doc(firestore, 'users', userId);
                     const userSnap = await getDoc(userDocRef);
 
@@ -143,9 +148,10 @@ export default function RequestsPage() {
                 requests: arrayRemove(requestUserId),
             }, { merge: true });
 
-            // Also add current user to requester's matches array (mutual match)
+            // Also add current user to requester's matches array and remove from their liked array (cleanup)
             await setDoc(requesterInteractionsDocRef, {
                 matches: arrayUnion(currentUserId),
+                liked: arrayRemove(currentUserId),  // Clean up: remove from their liked since it's now a match
             }, { merge: true });
 
             // Create chat for the match

@@ -35,6 +35,11 @@ export default function LoginPage() {
   useEffect(() => {
     const checkUser = async () => {
       if (!loading && user && firestore) {
+        // Check if email is verified first
+        if (!user.emailVerified) {
+          router.push('/verify-email');
+          return;
+        }
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
@@ -55,8 +60,13 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/matches');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      // Check if email is verified
+      if (!userCredential.user.emailVerified) {
+        router.push('/verify-email');
+      } else {
+        router.push('/matches');
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
       setError(errorMessage);

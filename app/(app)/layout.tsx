@@ -65,6 +65,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && !user) {
       router.push('/login');
+    } else if (!loading && user && !user.emailVerified) {
+      // Redirect unverified users to verify-email page
+      router.push('/verify-email');
     }
   }, [user, loading, router]);
 
