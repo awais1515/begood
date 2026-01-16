@@ -38,7 +38,17 @@ export default function EditProfilePage() {
 
         if (userDocSnap.exists()) {
           const data = userDocSnap.data();
-          const age = data.birthYear ? (new Date().getFullYear() - parseInt(data.birthYear, 10)) : data.age || 0;
+          const age = data.birthYear ? (() => {
+            const today = new Date();
+            const birthMonth = data.birthMonth || 1;
+            const birthDay = data.birthDay || 1;
+            let calculatedAge = today.getFullYear() - parseInt(data.birthYear, 10);
+            if (today.getMonth() + 1 < birthMonth ||
+              (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
+              calculatedAge--;
+            }
+            return calculatedAge;
+          })() : data.age || 0;
           setProfile({
             id: currentUser.uid,
             ...data,

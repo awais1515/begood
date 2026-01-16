@@ -247,11 +247,15 @@ function SignUpForm() {
                 // 3. Create user document in Firestore
                 const userDocRef = doc(firestore, "users", user.uid);
                 const birthYear = data.birthDate.getFullYear();
+                const birthMonth = data.birthDate.getMonth() + 1; // 1-12
+                const birthDay = data.birthDate.getDate();
 
                 const profileData = {
                     username: data.username,
                     fullName: data.fullName,
                     birthYear,
+                    birthMonth,
+                    birthDay,
                     gender: data.gender,
                     country: data.country,
                     bio: data.bio || '',

@@ -98,7 +98,17 @@ export default function RequestsPage() {
                     if (userSnap.exists()) {
                         const userData = userSnap.data();
                         const currentYear = new Date().getFullYear();
-                        const age = userData.birthYear ? currentYear - userData.birthYear : undefined;
+                        const age = userData.birthYear ? (() => {
+                            const today = new Date();
+                            const birthMonth = userData.birthMonth || 1;
+                            const birthDay = userData.birthDay || 1;
+                            let calculatedAge = currentYear - userData.birthYear;
+                            if (today.getMonth() + 1 < birthMonth ||
+                                (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
+                                calculatedAge--;
+                            }
+                            return calculatedAge;
+                        })() : undefined;
 
                         return {
                             id: userSnap.id,

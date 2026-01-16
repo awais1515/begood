@@ -260,12 +260,18 @@ export default function MatchesPage() {
       if (currentUserDocSnap.exists()) {
         const profileData = { id: currentUserDocSnap.id, ...currentUserDocSnap.data() } as UserProfile;
         if (profileData.birthYear) {
-          // Fix: Use proper age calculation
+          // Calculate accurate age using birthYear, birthMonth, birthDay
           const today = new Date();
           const birthYear = profileData.birthYear;
-          profileData.age = today.getFullYear() - birthYear;
-          // If birthday hasn't occurred yet this year, subtract 1
-          // Since we only have birthYear, we assume they've had birthday this year
+          const birthMonth = (profileData as any).birthMonth || 1;
+          const birthDay = (profileData as any).birthDay || 1;
+          let age = today.getFullYear() - birthYear;
+          // Check if birthday hasn't occurred yet this year
+          if (today.getMonth() + 1 < birthMonth ||
+            (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
+            age--;
+          }
+          profileData.age = age;
         }
         setCurrentUserProfile(profileData);
       }
@@ -307,8 +313,18 @@ export default function MatchesPage() {
             userPersonas.some((persona: string) => lookingForPrefs.includes(persona));
 
           if (matchesPreference) {
-            // Fix age calculation - just use birthYear difference
-            const age = data.birthYear ? currentYear - data.birthYear : data.age;
+            // Calculate accurate age
+            let age = data.age;
+            if (data.birthYear) {
+              const birthMonth = data.birthMonth || 1;
+              const birthDay = data.birthDay || 1;
+              age = currentYear - data.birthYear;
+              const today = new Date();
+              if (today.getMonth() + 1 < birthMonth ||
+                (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
+                age--;
+              }
+            }
             fetchedUsers.push({ id, ...data, age } as UserProfile);
           }
         }
