@@ -13,4 +13,6 @@ export type DetailedProfile = {
     dataAiHints: string[];
     interests: string[];
     favoriteBook?: string;
+    lastActive?: any; // Firestore Timestamp for tracking when user was last active
+    isOnline?: boolean; // Whether user is currently online
 };

@@ -9,6 +9,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { collection, query, where, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { signOut } from "firebase/auth";
+import { usePresence } from "@/hooks/use-presence";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const [requestsCount, setRequestsCount] = useState(0);
   const [userProfile, setUserProfile] = useState<{ displayName?: string; photoURL?: string } | null>(null);
+
+  // Track user presence (online status)
+  usePresence();
 
   // Page titles mapping
   const getPageTitle = () => {

@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WelcomeNotification } from "@/components/WelcomeNotification";
 import { formatDisplayValue } from "@/lib/utils";
+import { getOnlineStatus } from "@/hooks/use-presence";
 
 interface UserProfile {
   id: string;
@@ -32,6 +33,8 @@ interface UserProfile {
   personas?: string[];
   interests?: string[];
   isSuspended?: boolean;
+  lastActive?: any; // Firestore Timestamp
+  isOnline?: boolean;
 }
 
 // Define custom SVG icons
@@ -559,10 +562,22 @@ export default function MatchesPage() {
                       </Link>
 
                       {/* Active Status */}
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                        <span className="text-xs font-normal text-green-400">Online</span>
-                      </div>
+                      {(() => {
+                        const { isOnline, statusText } = getOnlineStatus(currentProfile.lastActive);
+                        const isNew = statusText === 'New';
+                        return (
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' :
+                                isNew ? 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]' :
+                                  'bg-gray-400'
+                              }`} />
+                            <span className={`text-xs font-normal ${isOnline ? 'text-green-400' :
+                                isNew ? 'text-yellow-400' :
+                                  'text-gray-400'
+                              }`}>{statusText}</span>
+                          </div>
+                        );
+                      })()}
 
                       {/* Age & Gender */}
                       <div className="text-white/90 font-medium text-sm mt-1">

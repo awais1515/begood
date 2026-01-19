@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import Image from "next/image";
 import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
@@ -54,13 +54,26 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
+    if (!auth || !firestore) return;
 
     setError("");
     setIsSubmitting(true);
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+      // Update lastActive timestamp on login
+      try {
+        const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+        await updateDoc(userDocRef, {
+          lastActive: serverTimestamp(),
+          isOnline: true
+        });
+      } catch (presenceError) {
+        // Silently fail - presence update is not critical
+        console.debug('Failed to update presence on login:', presenceError);
+      }
+
       // Check if email is verified
       if (!userCredential.user.emailVerified) {
         router.push('/verify-email');
