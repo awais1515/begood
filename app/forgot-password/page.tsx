@@ -6,6 +6,7 @@ import { sendPasswordResetEmail } from "firebase/auth";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 export default function ForgotPasswordPage() {
     const { auth } = useAuth();
@@ -25,14 +26,8 @@ export default function ForgotPasswordPage() {
             await sendPasswordResetEmail(auth, email);
             setSuccess(true);
         } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : "Failed to send reset email. Please try again.";
-            if (errorMessage.includes("user-not-found")) {
-                setError("No account found with this email address.");
-            } else if (errorMessage.includes("invalid-email")) {
-                setError("Please enter a valid email address.");
-            } else {
-                setError(errorMessage);
-            }
+            const errorMessage = getFriendlyErrorMessage(err, 'login');
+            setError(errorMessage);
         } finally {
             setIsSubmitting(false);
         }

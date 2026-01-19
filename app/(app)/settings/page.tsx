@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { FirebaseError } from "firebase/app";
+import { getUserFriendlyError } from "@/lib/error-messages";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -30,42 +30,43 @@ export default function SettingsPage() {
   useEffect(() => {
     if (authLoading) return;
     if (!currentUser) {
-        router.push('/');
-        return;
+      router.push('/');
+      return;
     }
     const fetchStatus = async () => {
-        if (!firestore) return;
-        try {
-            const userDocRef = doc(firestore, 'users', currentUser.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-                setIsSuspended(userDocSnap.data().isSuspended || false);
-            }
-        } catch (error) {
-            console.error("Error fetching user status:", error);
-        } finally {
-            setLoading(false);
+      if (!firestore) return;
+      try {
+        const userDocRef = doc(firestore, 'users', currentUser.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          setIsSuspended(userDocSnap.data().isSuspended || false);
         }
+      } catch (error) {
+        console.error("Error fetching user status:", error);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchStatus();
   }, [router, currentUser, authLoading, firestore]);
-  
+
   const handleToggleSuspend = async () => {
     if (!currentUser || !firestore) return;
 
     setIsTogglingSuspend(true);
     try {
-        const userDocRef = doc(firestore, 'users', currentUser.uid);
-        await updateDoc(userDocRef, { isSuspended: !isSuspended });
-        setIsSuspended(!isSuspended);
-        toast({
-            title: "Success",
-            description: `Your profile has been ${!isSuspended ? "suspended" : "reactivated"}.`
-        });
+      const userDocRef = doc(firestore, 'users', currentUser.uid);
+      await updateDoc(userDocRef, { isSuspended: !isSuspended });
+      setIsSuspended(!isSuspended);
+      toast({
+        title: "Success",
+        description: `Your profile has been ${!isSuspended ? "suspended" : "reactivated"}.`
+      });
     } catch (error: any) {
-        toast({ title: "Error", description: "Could not update your profile status.", variant: "destructive" });
+      const { title, description } = getUserFriendlyError(error, 'profile');
+      toast({ title, description, variant: "destructive" });
     } finally {
-        setIsTogglingSuspend(false);
+      setIsTogglingSuspend(false);
     }
   };
 
@@ -90,32 +91,21 @@ export default function SettingsPage() {
 
   const handleDeleteProfile = async () => {
     if (!currentUser) {
-        toast({ title: "Not Authenticated", description: "You must be logged in.", variant: "destructive" });
-        return;
+      toast({ title: "Not Authenticated", description: "You must be logged in.", variant: "destructive" });
+      return;
     }
     setIsDeleting(true);
     try {
-        await deleteUser(currentUser);
-        
-        toast({ title: "Profile Deleted", description: "Your account and all data have been permanently deleted." });
-        router.push('/');
+      await deleteUser(currentUser);
+
+      toast({ title: "Profile Deleted", description: "Your account and all data have been permanently deleted." });
+      router.push('/');
 
     } catch (error: any) {
-        let description = "An unexpected error occurred. Please try again.";
-        if (error instanceof FirebaseError) {
-             switch (error.code) {
-                case 'auth/requires-recent-login':
-                    description = "This is a sensitive operation. Please log out and log back in before deleting your profile.";
-                    break;
-                default:
-                     console.error("Error deleting profile:", error);
-             }
-        } else {
-             console.error("Error deleting profile:", error);
-        }
-        toast({ title: "Deletion Failed", description, variant: "destructive" });
+      const { title, description } = getUserFriendlyError(error, 'profile');
+      toast({ title, description, variant: "destructive" });
     } finally {
-        setIsDeleting(false);
+      setIsDeleting(false);
     }
   };
 
@@ -130,7 +120,7 @@ export default function SettingsPage() {
   return (
     <div className="container mx-auto py-8 max-w-3xl">
       <h1 className="text-4xl font-bold mb-8 font-serif text-center md:text-left text-primary">Settings</h1>
-      
+
       <ThemeSwitcher />
 
       <Separator className="my-10" />
@@ -138,92 +128,92 @@ export default function SettingsPage() {
       <PreferencesSelector />
 
       <Separator className="my-10" />
-      
+
       <Card className="shadow-lg font-sans rounded-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-serif">Manage Your Profile</CardTitle>
           <CardDescription>Update your photos, bio, and other account settings.</CardDescription>
         </CardHeader>
         <CardContent>
-            <Link href="/profile/edit">
-                <Button>Go to Edit Profile</Button>
-            </Link>
+          <Link href="/profile/edit">
+            <Button>Go to Edit Profile</Button>
+          </Link>
         </CardContent>
       </Card>
-      
+
       <Separator className="my-10" />
-      
+
       <Card className="shadow-lg font-sans rounded-xl">
         <CardHeader>
           <CardTitle className="text-2xl font-serif">Account Actions</CardTitle>
           <CardDescription>Log out from your current session.</CardDescription>
         </CardHeader>
         <CardContent>
-            <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4"/>
-                Log Out
-            </Button>
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Log Out
+          </Button>
         </CardContent>
       </Card>
 
       <Separator className="my-10" />
 
       <Card className="shadow-lg font-sans border-destructive rounded-xl">
-            <CardHeader>
-                <CardTitle className="text-2xl font-serif text-destructive">Danger Zone</CardTitle>
-                <CardDescription>Manage your account status and deletion.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div>
-                    <h3 className="text-lg font-medium">Suspend Profile</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                        {isSuspended
-                            ? "Your profile is currently hidden. Reactivate it to appear in matches again."
-                            : "Suspending your account will temporarily hide your profile from others. You can reactivate it at any time."
-                        }
-                    </p>
-                    <Button variant="outline" className="w-full md:w-auto border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleToggleSuspend} disabled={isTogglingSuspend}>
-                        {isTogglingSuspend && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        {isSuspended ? "Reactivate Profile" : "Suspend Profile"}
-                    </Button>
-                </div>
-                <Separator />
-                <div>
-                    <h3 className="text-lg font-medium">Delete Profile Permanently</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                        This action is irreversible and will permanently delete all your data, including matches and messages.
-                    </p>
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                        <Button variant="destructive" className="w-full md:w-auto" disabled={isDeleting}>
-                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                             Delete Profile
-                        </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete your
-                                account and remove your data from our servers.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                            onClick={handleDeleteProfile}
-                            disabled={isDeleting}
-                            className="bg-destructive hover:bg-destructive/90"
-                            >
-                            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Yes, delete my account
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-            </CardContent>
-        </Card>
+        <CardHeader>
+          <CardTitle className="text-2xl font-serif text-destructive">Danger Zone</CardTitle>
+          <CardDescription>Manage your account status and deletion.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h3 className="text-lg font-medium">Suspend Profile</h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              {isSuspended
+                ? "Your profile is currently hidden. Reactivate it to appear in matches again."
+                : "Suspending your account will temporarily hide your profile from others. You can reactivate it at any time."
+              }
+            </p>
+            <Button variant="outline" className="w-full md:w-auto border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={handleToggleSuspend} disabled={isTogglingSuspend}>
+              {isTogglingSuspend && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSuspended ? "Reactivate Profile" : "Suspend Profile"}
+            </Button>
+          </div>
+          <Separator />
+          <div>
+            <h3 className="text-lg font-medium">Delete Profile Permanently</h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              This action is irreversible and will permanently delete all your data, including matches and messages.
+            </p>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" className="w-full md:w-auto" disabled={isDeleting}>
+                  {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Delete Profile
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your
+                    account and remove your data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteProfile}
+                    disabled={isDeleting}
+                    className="bg-destructive hover:bg-destructive/90"
+                  >
+                    {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Yes, delete my account
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

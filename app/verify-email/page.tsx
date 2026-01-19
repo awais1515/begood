@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/firebase/provider';
 import { sendEmailVerification, signOut } from 'firebase/auth';
 import { MailCheck, Loader2 } from 'lucide-react';
-import { FirebaseError } from 'firebase/app';
+import { getUserFriendlyError } from '@/lib/error-messages';
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -35,7 +35,7 @@ export default function VerifyEmailPage() {
     };
     checkVerification();
   }, [user, authLoading, router, toast]);
-  
+
   const handleResendVerification = async () => {
     if (!user) {
       toast({ title: "Error", description: "You are not logged in.", variant: "destructive" });
@@ -47,22 +47,8 @@ export default function VerifyEmailPage() {
       toast({ title: "Email Sent", description: "A new verification link has been sent to your email." });
     } catch (error: any) {
       console.error("Error resending verification email:", error);
-      let errorTitle = "Error";
-      let errorMessage = "Failed to send verification email. Please try again later.";
-
-      if (error instanceof FirebaseError) {
-        switch (error.code) {
-          case 'auth/invalid-credential':
-            errorTitle = "Configuration Error";
-            errorMessage = "Could not send email. Your app's API key might be restricted. Please check your Google Cloud Console.";
-            break;
-          case 'auth/too-many-requests':
-            errorMessage = "You've requested this too many times. Please wait a while before trying again.";
-            break;
-        }
-      }
-      
-      toast({ title: errorTitle, description: errorMessage, variant: "destructive" });
+      const { title, description } = getUserFriendlyError(error, 'generic');
+      toast({ title, description, variant: "destructive" });
     } finally {
       setIsResending(false);
     }
@@ -80,12 +66,12 @@ export default function VerifyEmailPage() {
   };
 
   if (authLoading) {
-      return (
-          <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 font-sans">
-              <Loader2 className="h-12 w-12 animate-spin text-primary" />
-              <p className="mt-4 text-muted-foreground">Loading...</p>
-          </div>
-      );
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4 font-sans">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading...</p>
+      </div>
+    );
   }
 
   return (

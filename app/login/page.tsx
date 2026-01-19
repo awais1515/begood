@@ -10,6 +10,7 @@ import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "react-day-picker";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -81,7 +82,7 @@ export default function LoginPage() {
         router.push('/matches');
       }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
+      const errorMessage = getFriendlyErrorMessage(err, 'login');
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
