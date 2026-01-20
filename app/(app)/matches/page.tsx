@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
-import { collection, doc, getDoc, getDocs, setDoc, arrayUnion, serverTimestamp, query, where, runTransaction, type QueryConstraint } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, setDoc, arrayUnion, arrayRemove, serverTimestamp, query, where, runTransaction, type QueryConstraint } from "firebase/firestore";
 import { useAuth, useFirestore } from "@/firebase/provider";
 import { Button } from "@/components/ui/button";
 import { Heart, Loader2, X, SlidersHorizontal, Search, BookOpen, RefreshCw, Users, HelpCircle, AlertTriangle } from "lucide-react";
@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { WelcomeNotification } from "@/components/WelcomeNotification";
 import { formatDisplayValue } from "@/lib/utils";
+import { getOnlineStatus } from "@/hooks/use-presence";
 
 interface UserProfile {
   id: string;
@@ -32,6 +33,8 @@ interface UserProfile {
   personas?: string[];
   interests?: string[];
   isSuspended?: boolean;
+  lastActive?: any; // Firestore Timestamp
+  isOnline?: boolean;
 }
 
 // Define custom SVG icons
@@ -260,7 +263,18 @@ export default function MatchesPage() {
       if (currentUserDocSnap.exists()) {
         const profileData = { id: currentUserDocSnap.id, ...currentUserDocSnap.data() } as UserProfile;
         if (profileData.birthYear) {
-          profileData.age = new Date().getFullYear() - profileData.birthYear;
+          // Calculate accurate age using birthYear, birthMonth, birthDay
+          const today = new Date();
+          const birthYear = profileData.birthYear;
+          const birthMonth = (profileData as any).birthMonth || 1;
+          const birthDay = (profileData as any).birthDay || 1;
+          let age = today.getFullYear() - birthYear;
+          // Check if birthday hasn't occurred yet this year
+          if (today.getMonth() + 1 < birthMonth ||
+            (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
+            age--;
+          }
+          profileData.age = age;
         }
         setCurrentUserProfile(profileData);
       }
@@ -285,14 +299,37 @@ export default function MatchesPage() {
       const finalQuery = query(usersRef, where("isSuspended", "==", false));
       const querySnapshot = await getDocs(finalQuery);
 
+      // Get current user's lookingFor preferences
+      const currentUserData = currentUserDocSnap.exists() ? currentUserDocSnap.data() : {};
+      const lookingForPrefs: string[] = currentUserData.lookingFor || [];
+
       const currentYear = new Date().getFullYear();
       let fetchedUsers: UserProfile[] = [];
       querySnapshot.forEach(docSnap => {
         const id = docSnap.id;
         if (!seenIds.includes(id)) {
           const data = docSnap.data();
-          const age = data.birthYear ? currentYear - data.birthYear : data.age;
-          fetchedUsers.push({ id, ...data, age } as UserProfile);
+
+          // Filter based on preferences: show only users whose personas match our lookingFor
+          const userPersonas: string[] = data.personas || [];
+          const matchesPreference = lookingForPrefs.length === 0 ||
+            userPersonas.some((persona: string) => lookingForPrefs.includes(persona));
+
+          if (matchesPreference) {
+            // Calculate accurate age
+            let age = data.age;
+            if (data.birthYear) {
+              const birthMonth = data.birthMonth || 1;
+              const birthDay = data.birthDay || 1;
+              age = currentYear - data.birthYear;
+              const today = new Date();
+              if (today.getMonth() + 1 < birthMonth ||
+                (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
+                age--;
+              }
+            }
+            fetchedUsers.push({ id, ...data, age } as UserProfile);
+          }
         }
       });
 
@@ -360,6 +397,17 @@ export default function MatchesPage() {
         // Check for mutual match
         if (type === "liked" && targetLiked.includes(currentUserId)) {
           setMatchData(targetProfile);
+
+          // Both users should have each other in matches array
+          transaction.set(interactionsDocRef, {
+            matches: arrayUnion(targetUserId),
+            requests: arrayRemove(targetUserId)  // Remove from requests if exists
+          }, { merge: true });
+
+          transaction.set(targetInteractionsDocRef, {
+            matches: arrayUnion(currentUserId),
+            requests: arrayRemove(currentUserId)  // Remove current user from target's requests
+          }, { merge: true });
 
           const ids = [currentUserId, targetUserId].sort();
           const chatId = ids.join('_');
@@ -455,7 +503,7 @@ export default function MatchesPage() {
 
       <div className="flex flex-col flex-1 h-full">
         {/* Action Buttons - Right aligned below header */}
-        <div className="flex justify-end px-6 py-1">
+        <div className="flex justify-end px-4 md:px-6 py-1">
           <div className="flex items-center gap-2">
             <button
               onClick={() => fetchData()}
@@ -475,7 +523,7 @@ export default function MatchesPage() {
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex items-center justify-center px-6 pb-2">
+        <div className="flex-1 flex items-center justify-center px-4 md:px-6 pb-2">
           {errorState.hasError ? (
             <div className="flex flex-col items-center justify-center text-center p-4 text-destructive-foreground bg-destructive/80 rounded-lg shadow-lg max-w-sm w-full">
               <AlertTriangle className="mx-auto h-12 w-12" />
@@ -486,11 +534,11 @@ export default function MatchesPage() {
               </Button>
             </div>
           ) : currentProfile ? (
-            <div className="relative w-full max-w-sm">
+            <div className="relative w-full max-w-sm mx-auto">
               {/* Profile Card */}
-              <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20 mt-[-30px]">
+              <Card className="overflow-hidden rounded-2xl shadow-2xl bg-gradient-to-b from-primary/5 to-primary/20 border-primary/20 mt-0 md:mt-[-30px]">
                 {/* Image Section */}
-                <div className="relative w-full h-[calc(100vh-180px)]">
+                <div className="relative w-full h-[calc(100vh-220px)] md:h-[calc(100vh-180px)]">
                   <Image
                     src={currentProfile.mainImage || "https://placehold.co/600x800.png"}
                     alt={currentProfile.username}
@@ -514,10 +562,22 @@ export default function MatchesPage() {
                       </Link>
 
                       {/* Active Status */}
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
-                        <span className="text-xs font-normal text-green-400">Online</span>
-                      </div>
+                      {(() => {
+                        const { isOnline, statusText } = getOnlineStatus(currentProfile.lastActive);
+                        const isNew = statusText === 'New';
+                        return (
+                          <div className="flex items-center gap-1.5">
+                            <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]' :
+                                isNew ? 'bg-yellow-400 shadow-[0_0_8px_rgba(250,204,21,0.6)]' :
+                                  'bg-gray-400'
+                              }`} />
+                            <span className={`text-xs font-normal ${isOnline ? 'text-green-400' :
+                                isNew ? 'text-yellow-400' :
+                                  'text-gray-400'
+                              }`}>{statusText}</span>
+                          </div>
+                        );
+                      })()}
 
                       {/* Age & Gender */}
                       <div className="text-white/90 font-medium text-sm mt-1">

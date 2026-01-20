@@ -4,12 +4,13 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAuth, useFirestore } from "@/firebase/provider";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import Image from "next/image";
 import Link from "next/link";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { Button } from "react-day-picker";
+import { getFriendlyErrorMessage } from "@/lib/error-messages";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -35,6 +36,11 @@ export default function LoginPage() {
   useEffect(() => {
     const checkUser = async () => {
       if (!loading && user && firestore) {
+        // Check if email is verified first
+        if (!user.emailVerified) {
+          router.push('/verify-email');
+          return;
+        }
         const userDocRef = doc(firestore, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         if (userDocSnap.exists()) {
@@ -49,16 +55,34 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auth) return;
+    if (!auth || !firestore) return;
 
     setError("");
     setIsSubmitting(true);
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/matches');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+      // Update lastActive timestamp on login
+      try {
+        const userDocRef = doc(firestore, 'users', userCredential.user.uid);
+        await updateDoc(userDocRef, {
+          lastActive: serverTimestamp(),
+          isOnline: true
+        });
+      } catch (presenceError) {
+        // Silently fail - presence update is not critical
+        console.debug('Failed to update presence on login:', presenceError);
+      }
+
+      // Check if email is verified
+      if (!userCredential.user.emailVerified) {
+        router.push('/verify-email');
+      } else {
+        router.push('/matches');
+      }
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Login failed. Please try again.";
+      const errorMessage = getFriendlyErrorMessage(err, 'login');
       setError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -69,20 +93,20 @@ export default function LoginPage() {
   if (showSplash) {
     return (
       <main className="fixed inset-0 flex items-center justify-center bg-gradient-to-b from-[#1a1213] via-[#231418] to-[#1a1213] overflow-hidden">
-        {/* Top Right Flowers */}
+        {/* Top Right Flowers - Smaller on mobile */}
         <div className="absolute -top-5 -right-5 opacity-85 animate-in fade-in slide-in-from-top-5 duration-1000">
-          <Image src="/Top.svg" alt="" width={400} height={300} priority />
+          <Image src="/Top.svg" alt="" width={400} height={300} priority className="w-48 sm:w-64 md:w-[400px] h-auto" />
         </div>
 
         {/* Center Content */}
-        <div className="flex flex-col items-center gap-4 z-10 animate-in fade-in zoom-in-95 duration-1000">
-          <Image src="/Logo.svg" alt="BeGood" width={320} height={140} priority />
+        <div className="flex flex-col items-center gap-4 z-10 animate-in fade-in zoom-in-95 duration-1000 px-4">
+          <Image src="/Logo.svg" alt="BeGood" width={320} height={140} priority className="w-48 sm:w-64 md:w-80 h-auto" />
 
         </div>
 
-        {/* Bottom Left Flowers */}
+        {/* Bottom Left Flowers - Smaller on mobile */}
         <div className="absolute -bottom-5 -left-5 opacity-85 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-200">
-          <Image src="/Bottom.svg" alt="" width={400} height={300} priority />
+          <Image src="/Bottom.svg" alt="" width={400} height={300} priority className="w-48 sm:w-64 md:w-[400px] h-auto" />
         </div>
       </main>
     );
@@ -90,7 +114,7 @@ export default function LoginPage() {
 
   // Login Form Screen
   return (
-    <main className="min-h-screen flex items-center justify-center relative p-5 w-full" style={{ fontFamily: 'var(--font-montserrat)' }}>
+    <main className="min-h-screen flex items-center justify-center relative p-4 md:p-5 w-full" style={{ fontFamily: 'var(--font-montserrat)' }}>
       {/* Background Image */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat z-0 w-full h-full"
@@ -99,21 +123,25 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      {/* Login Container */}
-      <div className="flex items-stretch bg-[#140c0e]/75 rounded-2xl overflow-hidden max-w-[750px] w-full shadow-2xl backdrop-blur-xl relative z-10 border border-[#E296A3]/10">
+      {/* Login Container - Stack on mobile */}
+      <div className="flex flex-col md:flex-row items-stretch bg-[#140c0e]/75 rounded-2xl overflow-hidden max-w-[750px] w-full shadow-2xl backdrop-blur-xl relative z-10 border border-[#E296A3]/10">
 
-        {/* Left Side - Welcome */}
-        <div className="flex-[0.9] flex flex-col items-center justify-center py-12 px-9 gap-2">
+        {/* Left Side - Welcome (hidden on mobile) */}
+        <div className="hidden md:flex flex-[0.9] flex-col items-center justify-center py-12 px-9 gap-2">
           <h1 className="text-white text-3xl font-semibold mb-4" style={{ fontFamily: 'var(--font-montserrat)' }}>Welcome</h1>
           <Image src="/Logo.svg" alt="BeGood" width={180} height={78} priority />
         </div>
 
-        {/* Divider */}
-        <div className="w-px bg-[#E296A3]/25 my-10" />
+        {/* Divider (hidden on mobile) */}
+        <div className="hidden md:block w-px bg-[#E296A3]/25 my-10" />
 
         {/* Right Side - Login Form */}
-        <div className="flex-[1.1] p-10 px-11">
-          <h2 className="text-white text-[28px] font-medium mb-8 text-center tracking-wide" style={{ fontFamily: 'var(--font-montserrat)' }}>Log In</h2>
+        <div className="flex-[1.1] p-6 sm:p-8 md:p-10 md:px-11">
+          {/* Mobile Logo - shown only on mobile */}
+          <div className="flex md:hidden justify-center mb-6">
+            <Image src="/Logo.svg" alt="BeGood" width={140} height={60} priority />
+          </div>
+          <h2 className="text-white text-2xl sm:text-[28px] font-medium mb-6 sm:mb-8 text-center tracking-wide" style={{ fontFamily: 'var(--font-montserrat)' }}>Log In</h2>
 
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             {/* Email Field */}

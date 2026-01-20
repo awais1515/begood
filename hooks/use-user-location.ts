@@ -29,15 +29,15 @@ export function useUserLocation() {
       // Don't set an error for permission denied, as it's a common user choice.
       // The feature will just gracefully not appear.
       if (error.code !== error.PERMISSION_DENIED) {
-        setError(error.message);
+        setError('Unable to get your location. Distance features may be unavailable.');
       }
-      console.warn(`Geolocation error: ${error.message}`);
+      console.warn(`Geolocation error: ${error.code}`);
     };
 
     navigator.geolocation.getCurrentPosition(handleSuccess, handleError, {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 600000 // Can use a cached position up to 10 minutes old
+      enableHighAccuracy: false,
+      timeout: 10000,
+      maximumAge: 600000 // Can use a cached position up to 10 minutes old
     });
   }, []);
 

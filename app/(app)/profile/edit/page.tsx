@@ -38,7 +38,17 @@ export default function EditProfilePage() {
 
         if (userDocSnap.exists()) {
           const data = userDocSnap.data();
-          const age = data.birthYear ? (new Date().getFullYear() - parseInt(data.birthYear, 10)) : data.age || 0;
+          const age = data.birthYear ? (() => {
+            const today = new Date();
+            const birthMonth = data.birthMonth || 1;
+            const birthDay = data.birthDay || 1;
+            let calculatedAge = today.getFullYear() - parseInt(data.birthYear, 10);
+            if (today.getMonth() + 1 < birthMonth ||
+              (today.getMonth() + 1 === birthMonth && today.getDate() < birthDay)) {
+              calculatedAge--;
+            }
+            return calculatedAge;
+          })() : data.age || 0;
           setProfile({
             id: currentUser.uid,
             ...data,
@@ -93,12 +103,12 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="container mx-auto max-w-2xl py-8">
-      <div className="flex items-center gap-4 mb-8">
+    <div className="container mx-auto max-w-2xl py-4 md:py-8 px-4">
+      <div className="flex items-center gap-3 md:gap-4 mb-6 md:mb-8">
         <Button onClick={() => router.back()} variant="ghost" size="icon">
-          <ArrowLeft className="h-6 w-6" />
+          <ArrowLeft className="h-5 w-5 md:h-6 md:w-6" />
         </Button>
-        <h1 className="text-4xl font-bold font-serif">Edit Profile</h1>
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif">Edit Profile</h1>
       </div>
       <EditProfileForm profile={profile} />
     </div>
